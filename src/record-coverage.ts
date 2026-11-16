@@ -14,6 +14,8 @@ import type { ArchiveRecord } from './record.ts';
 
 export const COVERAGE_FIELDS = ['unitPrice', 'totalValue', 'shareCount', 'investorCount', 'allocation', 'riskValue', 'category', 'prices'] as const;
 
+export const RECORD_COVERAGE_COLUMNS = ['fund_code', 'field', 'month', 'records'] as const;
+
 export interface RecordCoverageRow {
   fund_code: string;
   field: string;
