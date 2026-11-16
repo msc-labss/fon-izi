@@ -108,7 +108,18 @@ Results are in section 5.
   (`/tr/bildirim-sorgu-sonuc?member={manager}`) is server-rendered and
   returns about a year of filings. Tera's includes 148 "Pay Alım Satım
   Bildirimi" share-trade notices naming its funds.
-- **Still open:** how to query published portfolio reports by fund.
+- **The fund query:** published portfolio reports are listed only through
+  KAP's site search, which calls a JSON endpoint. The maintainer authorised
+  calling it the way the site does (16 Nov 2026). Two calls with our
+  User-Agent, 10 s apart, returned HTTP 500. Making it answer would mean
+  copying a browser session, which our rules exclude, so it was not
+  pursued.
+- **Holdings available instead (private dump, `fon_icerik`):**
+  - **August 2026:** 30 crisis funds. Tera TLY, DOH, THF, TLV, TP2; Hedef
+    13; Pardus 6; Atlas 6; none from Pusula, Bulls or A1.
+  - **September 2026:** 9 crisis funds (DOH, HKJ, PAO, PMP, PO9, POS, PSE,
+    PYR, TLY).
+  - Concentration flags can be computed only for these funds and months.
 
 ## 4. Free float and daily volume (task 2.3)
 
