@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { test } from 'node:test';
 import { parseCsv, parseCsvRecords, toCsv } from '../src/csv.ts';
-import { EVENT_COLUMNS, validateEvents } from '../src/events.ts';
+import { EVENT_COLUMNS, TIMELINE_COLUMNS, validateEvents, validateTimeline } from '../src/events.ts';
 
 const ROOT = resolve(import.meta.dirname, '..');
 const CLI = join(ROOT, 'src/cli.ts');
@@ -64,4 +64,21 @@ test('CSV round trip with quotes, commas and newlines', () => {
   assert.deepEqual(parseCsvRecords(text).records, records);
   assert.deepEqual(parseCsv('x,y\r\n1,2\r\n'), [['x', 'y'], ['1', '2']]);
   assert.throws(() => parseCsv('"open'), /unterminated/);
+});
+
+test('the committed timeline is valid', () => {
+  const res = run('validate-timeline');
+  assert.equal(res.status, 0, res.stderr);
+});
+
+test('event without citation fails validation, naming the row', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'fon-izi-tl-'));
+  const file = join(dir, 'bad.csv');
+  const ok = { event_date: '2026-06-17', published_on: '2026-06-17', entity_type: 'fund', entity: 'Tera Portföy Birinci Serbest Fon', fund_codes: 'TLY', issuer_code: '', event: 'administrative-fine', description: 'Administrative fine', decision_ref: '', source_url: 'https://spk.gov.tr/data/x/2026-39.pdf', source_bulletin: '2026/39', source_page: '4' };
+  writeFileSync(file, toCsv(TIMELINE_COLUMNS, [ok, { ...ok, event_date: '2026-06-18', source_url: '', source_page: '', source_bulletin: '' }]));
+  const res = run('validate-timeline', '--timeline', file);
+  assert.notEqual(res.status, 0);
+  assert.match(res.stderr, /row 2 \(2026-06-18, administrative-fine\): no source citation/);
+  const { errors } = validateTimeline(toCsv(TIMELINE_COLUMNS, [{ ...ok, entity_type: 'person' }]));
+  assert.ok(errors.some((e) => e.includes('entity_type must be one of')));
 });

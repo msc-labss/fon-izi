@@ -37,3 +37,4 @@ jobs:
         run: |
           node --experimental-strip-types src/cli.ts check
           node --experimental-strip-types src/cli.ts validate-events
+          node --experimental-strip-types src/cli.ts validate-timeline

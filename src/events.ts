@@ -49,3 +49,52 @@ export function validateEvents(text: string): { rows: number; errors: string[] }
   });
   return { rows: records.length, errors };
 }
+
+/**
+ * Curated events timeline (spec fund-risk-metrics, "Curated events cite an
+ * official source"): decisions, fines, measures and liquidation steps, by
+ * hand, each row with an official source URL plus a page or disclosure id.
+ * Rows name legal entities only, never natural persons.
+ */
+export const TIMELINE_COLUMNS = [
+  'event_date',
+  'published_on',
+  'entity_type',
+  'entity',
+  'fund_codes',
+  'issuer_code',
+  'event',
+  'description',
+  'decision_ref',
+  'source_url',
+  'source_bulletin',
+  'source_page',
+] as const;
+
+const ENTITY_TYPES = ['manager', 'fund', 'issuer', 'market'];
+
+export function validateTimeline(text: string): { rows: number; errors: string[] } {
+  const { header, records } = parseCsvRecords(text);
+  const missing = TIMELINE_COLUMNS.filter((c) => !header.includes(c));
+  if (missing.length) return { rows: 0, errors: [`header: missing ${missing.join(', ')}`] };
+  const errors: string[] = [];
+  records.forEach((r, i) => {
+    const where = `row ${i + 1} (${r.event_date || 'no date'}, ${r.event || 'no event'})`;
+    if (!DAY.test(r.event_date)) errors.push(`${where}: event_date must be YYYY-MM-DD`);
+    if (r.published_on && !DAY.test(r.published_on)) errors.push(`${where}: published_on must be YYYY-MM-DD`);
+    if (!ENTITY_TYPES.includes(r.entity_type)) errors.push(`${where}: entity_type must be one of ${ENTITY_TYPES.join(', ')}`);
+    if (!r.entity) errors.push(`${where}: entity is empty`);
+    if (!/^[a-z][a-z0-9-]*$/.test(r.event)) errors.push(`${where}: event must be a lower-case slug`);
+    if (!r.description) errors.push(`${where}: description is empty`);
+    for (const code of r.fund_codes ? r.fund_codes.split(';') : []) if (!/^[A-Z0-9]{2,4}$/.test(code)) errors.push(`${where}: fund code ${code} is not a TEFAS code`);
+    let url: URL | null = null;
+    try {
+      url = new URL(r.source_url);
+    } catch {
+      // reported below
+    }
+    if (!url || url.protocol !== 'https:') errors.push(`${where}: no source citation (source_url must be an https URL)`);
+    if (!r.source_page && !r.source_bulletin) errors.push(`${where}: no source citation (needs source_page or source_bulletin)`);
+  });
+  return { rows: records.length, errors };
+}

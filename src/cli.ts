@@ -5,6 +5,7 @@
  *   node --experimental-strip-types src/cli.ts validate-archive [--archive archive]
  *   node --experimental-strip-types src/cli.ts snapshot [--archive archive] [--day YYYY-MM-DD] [--limit N] [--no-witness]
  *   node --experimental-strip-types src/cli.ts validate-events [--events events/2026-fund-crisis.csv]
+ *   node --experimental-strip-types src/cli.ts validate-timeline [--timeline events/2026-timeline.csv]
  *   node --experimental-strip-types src/cli.ts archive-coverage --fund-list <fon-getirileri.html> [--from 2025-01] [--to 2026-09] [--out docs/history-coverage.csv]
  *   node --experimental-strip-types src/cli.ts backfill --fund-list <fon-getirileri.html> [--archive <dir>] [--from 2025-01] [--to 2026-09] [--codes A,B] [--cache <dir>]
  *     [--retry-failures <earlier run summary> --group <new group>]   re-extract only the captures that failed
@@ -25,7 +26,7 @@ import { recordCoverage } from './record-coverage.ts';
 import { parseCsvRecords } from './csv.ts';
 import { archiveCoverage, studyFunds } from './coverage.ts';
 import { toCsv } from './csv.ts';
-import { validateEvents } from './events.ts';
+import { validateEvents, validateTimeline } from './events.ts';
 import { createFetcher, realClock } from './fetch.ts';
 import { validateRegistry } from './registry.ts';
 import type { Source } from './registry.ts';
@@ -81,6 +82,7 @@ export async function main(argv: string[]): Promise<number> {
       day: { type: 'string', default: new Date().toISOString().slice(0, 10) },
       limit: { type: 'string' },
       events: { type: 'string', default: resolve(ROOT, 'events/2026-fund-crisis.csv') },
+      timeline: { type: 'string', default: resolve(ROOT, 'events/2026-timeline.csv') },
       'no-witness': { type: 'boolean', default: false },
       'fund-list': { type: 'string' },
       from: { type: 'string', default: '2025-01' },
@@ -97,6 +99,14 @@ export async function main(argv: string[]): Promise<number> {
       return check(values.registry as string);
     case 'validate-archive':
       return validate(values.archive as string);
+    case 'validate-timeline': {
+      const file = values.timeline as string;
+      const { rows, errors } = validateTimeline(readFileSync(file, 'utf8'));
+      for (const e of errors) console.error(`${file}: ${e}`);
+      if (errors.length) return 1;
+      console.log(`${file}: ${rows} rows valid`);
+      return 0;
+    }
     case 'validate-events': {
       const file = values.events as string;
       const { rows, errors } = validateEvents(readFileSync(file, 'utf8'));
