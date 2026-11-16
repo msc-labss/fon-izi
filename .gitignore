@@ -1,0 +1,3 @@
+node_modules/
+# Full source responses: kept locally while the source policy is hash-only (docs/sources/tefas.md).
+fixtures-local/
