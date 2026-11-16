@@ -1,0 +1,398 @@
+{
+  "backtest.controls": {
+    "value": 1546,
+    "kind": "integer",
+    "source": "reports/backtest-2026-11-16T172424274Z.json: controlFunds"
+  },
+  "backtest.grid_dates": {
+    "value": 89,
+    "kind": "integer",
+    "source": "reports/backtest-2026-11-16T172424274Z.json: grid.dates"
+  },
+  "backtest.grid_from": {
+    "value": "2025-01-03",
+    "kind": "date",
+    "source": "reports/backtest-2026-11-16T172424274Z.json: grid.from"
+  },
+  "backtest.grid_to": {
+    "value": "2026-09-11",
+    "kind": "date",
+    "source": "reports/backtest-2026-11-16T172424274Z.json: grid.to"
+  },
+  "date.guideline": {
+    "value": "2026-08-28",
+    "kind": "date",
+    "source": "events/2026-fund-crisis.csv: event_date of guideline-amended"
+  },
+  "date.liquidation": {
+    "value": "2026-09-17",
+    "kind": "date",
+    "source": "events/2026-fund-crisis.csv: event_date of liquidation-ordered"
+  },
+  "flag.investor-growth.control_ever": {
+    "value": 5.072463768115942,
+    "kind": "percent",
+    "digits": 1,
+    "source": "reports/backtest-2026-11-16T172424274Z.json: flags[investor-growth].control.everTriggered / withData"
+  },
+  "flag.investor-growth.control_with_data": {
+    "value": 1518,
+    "kind": "integer",
+    "source": "reports/backtest-2026-11-16T172424274Z.json: flags[investor-growth].control.withData"
+  },
+  "flag.investor-growth.event_ever": {
+    "value": 13.846153846153847,
+    "kind": "percent",
+    "digits": 1,
+    "source": "reports/backtest-2026-11-16T172424274Z.json: flags[investor-growth].eventEverTriggered / eventCoverage"
+  },
+  "flag.investor-growth.event_with_data": {
+    "value": 130,
+    "kind": "integer",
+    "source": "reports/backtest-2026-11-16T172424274Z.json: flags[investor-growth].eventCoverage"
+  },
+  "flag.investor-growth.lead_liq": {
+    "value": 3,
+    "kind": "integer",
+    "source": "reports/backtest-2026-11-16T172424274Z.json: flags[investor-growth].lead[liquidation-ordered].lead"
+  },
+  "flag.investor-growth.median_liq": {
+    "value": 27,
+    "kind": "days",
+    "source": "reports/backtest-2026-11-16T172424274Z.json: flags[investor-growth].lead[liquidation-ordered].medianDays"
+  },
+  "flag.investor-growth.ratio": {
+    "value": 2.7296703296703297,
+    "kind": "decimal",
+    "digits": 1,
+    "source": "reports/backtest-2026-11-16T172424274Z.json: flags[investor-growth] event_ever / control_ever"
+  },
+  "flag.manager-cluster.control_ever": {
+    "value": 15,
+    "kind": "percent",
+    "digits": 1,
+    "source": "reports/backtest-2026-11-16T172424274Z.json: flags[manager-cluster].control.everTriggered / withData"
+  },
+  "flag.manager-cluster.control_with_data": {
+    "value": 40,
+    "kind": "integer",
+    "source": "reports/backtest-2026-11-16T172424274Z.json: flags[manager-cluster].control.withData"
+  },
+  "flag.manager-cluster.event_ever": {
+    "value": 20.689655172413794,
+    "kind": "percent",
+    "digits": 1,
+    "source": "reports/backtest-2026-11-16T172424274Z.json: flags[manager-cluster].eventEverTriggered / eventCoverage"
+  },
+  "flag.manager-cluster.event_with_data": {
+    "value": 29,
+    "kind": "integer",
+    "source": "reports/backtest-2026-11-16T172424274Z.json: flags[manager-cluster].eventCoverage"
+  },
+  "flag.manager-cluster.lead_liq": {
+    "value": 6,
+    "kind": "integer",
+    "source": "reports/backtest-2026-11-16T172424274Z.json: flags[manager-cluster].lead[liquidation-ordered].lead"
+  },
+  "flag.manager-cluster.median_liq": {
+    "value": 6,
+    "kind": "days",
+    "source": "reports/backtest-2026-11-16T172424274Z.json: flags[manager-cluster].lead[liquidation-ordered].medianDays"
+  },
+  "flag.manager-cluster.ratio": {
+    "value": 1.3793103448275863,
+    "kind": "decimal",
+    "digits": 1,
+    "source": "reports/backtest-2026-11-16T172424274Z.json: flags[manager-cluster] event_ever / control_ever"
+  },
+  "flag.net-inflow.control_ever": {
+    "value": 30.449141347424042,
+    "kind": "percent",
+    "digits": 1,
+    "source": "reports/backtest-2026-11-16T172424274Z.json: flags[net-inflow].control.everTriggered / withData"
+  },
+  "flag.net-inflow.control_with_data": {
+    "value": 1514,
+    "kind": "integer",
+    "source": "reports/backtest-2026-11-16T172424274Z.json: flags[net-inflow].control.withData"
+  },
+  "flag.net-inflow.event_ever": {
+    "value": 72.65625,
+    "kind": "percent",
+    "digits": 1,
+    "source": "reports/backtest-2026-11-16T172424274Z.json: flags[net-inflow].eventEverTriggered / eventCoverage"
+  },
+  "flag.net-inflow.event_with_data": {
+    "value": 128,
+    "kind": "integer",
+    "source": "reports/backtest-2026-11-16T172424274Z.json: flags[net-inflow].eventCoverage"
+  },
+  "flag.net-inflow.lead_liq": {
+    "value": 10,
+    "kind": "integer",
+    "source": "reports/backtest-2026-11-16T172424274Z.json: flags[net-inflow].lead[liquidation-ordered].lead"
+  },
+  "flag.net-inflow.median_liq": {
+    "value": 34,
+    "kind": "days",
+    "source": "reports/backtest-2026-11-16T172424274Z.json: flags[net-inflow].lead[liquidation-ordered].medianDays"
+  },
+  "flag.net-inflow.ratio": {
+    "value": 2.3861510303687634,
+    "kind": "decimal",
+    "digits": 1,
+    "source": "reports/backtest-2026-11-16T172424274Z.json: flags[net-inflow] event_ever / control_ever"
+  },
+  "flag.reach-vs-type.control_ever": {
+    "value": 13.197969543147208,
+    "kind": "percent",
+    "digits": 1,
+    "source": "reports/backtest-2026-11-16T172424274Z.json: flags[reach-vs-type].control.everTriggered / withData"
+  },
+  "flag.reach-vs-type.control_with_data": {
+    "value": 197,
+    "kind": "integer",
+    "source": "reports/backtest-2026-11-16T172424274Z.json: flags[reach-vs-type].control.withData"
+  },
+  "flag.reach-vs-type.event_ever": {
+    "value": 15.384615384615385,
+    "kind": "percent",
+    "digits": 1,
+    "source": "reports/backtest-2026-11-16T172424274Z.json: flags[reach-vs-type].eventEverTriggered / eventCoverage"
+  },
+  "flag.reach-vs-type.event_with_data": {
+    "value": 130,
+    "kind": "integer",
+    "source": "reports/backtest-2026-11-16T172424274Z.json: flags[reach-vs-type].eventCoverage"
+  },
+  "flag.reach-vs-type.lead_liq": {
+    "value": 11,
+    "kind": "integer",
+    "source": "reports/backtest-2026-11-16T172424274Z.json: flags[reach-vs-type].lead[liquidation-ordered].lead"
+  },
+  "flag.reach-vs-type.median_liq": {
+    "value": 391,
+    "kind": "days",
+    "source": "reports/backtest-2026-11-16T172424274Z.json: flags[reach-vs-type].lead[liquidation-ordered].medianDays"
+  },
+  "flag.reach-vs-type.ratio": {
+    "value": 1.165680473372781,
+    "kind": "decimal",
+    "digits": 1,
+    "source": "reports/backtest-2026-11-16T172424274Z.json: flags[reach-vs-type] event_ever / control_ever"
+  },
+  "flag.repo-borrowing.control_ever": {
+    "value": 3.4053700065487886,
+    "kind": "percent",
+    "digits": 1,
+    "source": "reports/backtest-2026-11-16T172424274Z.json: flags[repo-borrowing].control.everTriggered / withData"
+  },
+  "flag.repo-borrowing.control_with_data": {
+    "value": 1527,
+    "kind": "integer",
+    "source": "reports/backtest-2026-11-16T172424274Z.json: flags[repo-borrowing].control.withData"
+  },
+  "flag.repo-borrowing.event_ever": {
+    "value": 9.30232558139535,
+    "kind": "percent",
+    "digits": 1,
+    "source": "reports/backtest-2026-11-16T172424274Z.json: flags[repo-borrowing].eventEverTriggered / eventCoverage"
+  },
+  "flag.repo-borrowing.event_with_data": {
+    "value": 129,
+    "kind": "integer",
+    "source": "reports/backtest-2026-11-16T172424274Z.json: flags[repo-borrowing].eventCoverage"
+  },
+  "flag.repo-borrowing.lead_liq": {
+    "value": 7,
+    "kind": "integer",
+    "source": "reports/backtest-2026-11-16T172424274Z.json: flags[repo-borrowing].lead[liquidation-ordered].lead"
+  },
+  "flag.repo-borrowing.median_liq": {
+    "value": 48,
+    "kind": "days",
+    "source": "reports/backtest-2026-11-16T172424274Z.json: flags[repo-borrowing].lead[liquidation-ordered].medianDays"
+  },
+  "flag.repo-borrowing.ratio": {
+    "value": 2.7316636851520575,
+    "kind": "decimal",
+    "digits": 1,
+    "source": "reports/backtest-2026-11-16T172424274Z.json: flags[repo-borrowing] event_ever / control_ever"
+  },
+  "flag.return-vs-peers.control_ever": {
+    "value": 4.821664464993395,
+    "kind": "percent",
+    "digits": 1,
+    "source": "reports/backtest-2026-11-16T172424274Z.json: flags[return-vs-peers].control.everTriggered / withData"
+  },
+  "flag.return-vs-peers.control_with_data": {
+    "value": 1514,
+    "kind": "integer",
+    "source": "reports/backtest-2026-11-16T172424274Z.json: flags[return-vs-peers].control.withData"
+  },
+  "flag.return-vs-peers.event_ever": {
+    "value": 44.53125,
+    "kind": "percent",
+    "digits": 1,
+    "source": "reports/backtest-2026-11-16T172424274Z.json: flags[return-vs-peers].eventEverTriggered / eventCoverage"
+  },
+  "flag.return-vs-peers.event_with_data": {
+    "value": 128,
+    "kind": "integer",
+    "source": "reports/backtest-2026-11-16T172424274Z.json: flags[return-vs-peers].eventCoverage"
+  },
+  "flag.return-vs-peers.lead_liq": {
+    "value": 10,
+    "kind": "integer",
+    "source": "reports/backtest-2026-11-16T172424274Z.json: flags[return-vs-peers].lead[liquidation-ordered].lead"
+  },
+  "flag.return-vs-peers.median_liq": {
+    "value": 16.5,
+    "kind": "days",
+    "source": "reports/backtest-2026-11-16T172424274Z.json: flags[return-vs-peers].lead[liquidation-ordered].medianDays"
+  },
+  "flag.return-vs-peers.ratio": {
+    "value": 9.235659246575342,
+    "kind": "decimal",
+    "digits": 1,
+    "source": "reports/backtest-2026-11-16T172424274Z.json: flags[return-vs-peers] event_ever / control_ever"
+  },
+  "funds.liquidated": {
+    "value": 131,
+    "kind": "integer",
+    "source": "events/2026-fund-crisis.csv: distinct fund_code"
+  },
+  "leads.any_measured": {
+    "value": 26,
+    "kind": "integer",
+    "source": "reports/backtest-2026-11-16T172424274Z-leadtimes.csv: distinct code with a lead into liquidation-ordered in the measured flags"
+  },
+  "longest.days": {
+    "value": 223,
+    "kind": "days",
+    "source": "reports/backtest-2026-11-16T172424274Z-leadtimes.csv: PDG return-vs-peers liquidation-ordered days"
+  },
+  "longest.since": {
+    "value": "2026-02-06",
+    "kind": "date",
+    "source": "reports/backtest-2026-11-16T172424274Z-leadtimes.csv: PDG return-vs-peers liquidation-ordered since"
+  },
+  "managers": {
+    "value": 7,
+    "kind": "integer",
+    "source": "events/2026-fund-crisis.csv: distinct manager"
+  },
+  "method.days-to-exit.min_weight_percent": {
+    "value": 5,
+    "kind": "integer",
+    "source": "METHOD.md v0: days-to-exit min_weight_percent"
+  },
+  "method.days-to-exit.threshold": {
+    "value": 20,
+    "kind": "integer",
+    "digits": 2,
+    "source": "METHOD.md v0: days-to-exit threshold (absolute value)"
+  },
+  "method.days-to-exit.window_days": {
+    "value": 20,
+    "kind": "integer",
+    "source": "METHOD.md v0: days-to-exit window_days"
+  },
+  "method.free-float-share.threshold": {
+    "value": 0.5,
+    "kind": "decimal",
+    "digits": 2,
+    "source": "METHOD.md v0: free-float-share threshold (absolute value)"
+  },
+  "method.investor-growth.min_investors": {
+    "value": 1000,
+    "kind": "integer",
+    "source": "METHOD.md v0: investor-growth min_investors"
+  },
+  "method.investor-growth.threshold": {
+    "value": 5,
+    "kind": "integer",
+    "digits": 2,
+    "source": "METHOD.md v0: investor-growth threshold (absolute value)"
+  },
+  "method.investor-growth.window_days": {
+    "value": 90,
+    "kind": "integer",
+    "source": "METHOD.md v0: investor-growth window_days"
+  },
+  "method.manager-cluster.min_weight_percent": {
+    "value": 10,
+    "kind": "integer",
+    "source": "METHOD.md v0: manager-cluster min_weight_percent"
+  },
+  "method.manager-cluster.threshold": {
+    "value": 3,
+    "kind": "integer",
+    "digits": 2,
+    "source": "METHOD.md v0: manager-cluster threshold (absolute value)"
+  },
+  "method.net-inflow.threshold": {
+    "value": 2,
+    "kind": "integer",
+    "digits": 2,
+    "source": "METHOD.md v0: net-inflow threshold (absolute value)"
+  },
+  "method.net-inflow.window_days": {
+    "value": 90,
+    "kind": "integer",
+    "source": "METHOD.md v0: net-inflow window_days"
+  },
+  "method.reach-vs-type.threshold": {
+    "value": 1000,
+    "kind": "integer",
+    "digits": 2,
+    "source": "METHOD.md v0: reach-vs-type threshold (absolute value)"
+  },
+  "method.repo-borrowing.threshold": {
+    "value": 5,
+    "kind": "integer",
+    "digits": 2,
+    "source": "METHOD.md v0: repo-borrowing threshold (absolute value)"
+  },
+  "method.return-vs-peers.threshold": {
+    "value": 99,
+    "kind": "integer",
+    "digits": 2,
+    "source": "METHOD.md v0: return-vs-peers threshold (absolute value)"
+  },
+  "method.return-vs-peers.window_days": {
+    "value": 90,
+    "kind": "integer",
+    "source": "METHOD.md v0: return-vs-peers window_days"
+  },
+  "timeline.rows": {
+    "value": 31,
+    "kind": "integer",
+    "source": "events/2026-timeline.csv: rows"
+  },
+  "timeline.trading_bans": {
+    "value": 11,
+    "kind": "integer",
+    "source": "events/2026-timeline.csv: event = trading-ban"
+  },
+  "tly.repo.days": {
+    "value": 48,
+    "kind": "days",
+    "source": "reports/backtest-2026-11-16T172424274Z-leadtimes.csv: TLY repo-borrowing liquidation-ordered days"
+  },
+  "tly.repo.since": {
+    "value": "2026-07-31",
+    "kind": "date",
+    "source": "reports/backtest-2026-11-16T172424274Z-leadtimes.csv: TLY repo-borrowing liquidation-ordered since"
+  },
+  "tly.rvp.days": {
+    "value": 27,
+    "kind": "days",
+    "source": "reports/backtest-2026-11-16T172424274Z-leadtimes.csv: TLY return-vs-peers liquidation-ordered days"
+  },
+  "tly.rvp.since": {
+    "value": "2026-08-21",
+    "kind": "date",
+    "source": "reports/backtest-2026-11-16T172424274Z-leadtimes.csv: TLY return-vs-peers liquidation-ordered since"
+  }
+}

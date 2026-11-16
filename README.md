@@ -9,10 +9,29 @@ public data about those funds has since changed or gone from the pages that
 showed it. Fon İzi records what public sources show each day, with enough
 provenance that every record can be cited and checked later.
 
-> **Status:** the code is public; the data is not yet. Daily capture runs
-> privately until a legal read clears publishing extracted TEFAS fields
-> (`docs/sources/terms.md`). The event set of the 131 funds SPK ordered
-> liquidated on 17 Sep 2026 is in `events/`.
+> **Status:** the first release, `data-2026.11.16`, is out: a case file on
+> the 2026 fund liquidations in English and Turkish, with its method, event
+> set, SPK timeline and backtest tables (`releases/2026.11.16/`). The daily
+> archive itself is not part of the release and stays private for now
+> (`docs/sources/terms.md`).
+
+## Releases
+
+Each release is a folder under `releases/` with a `manifest.json` that lists
+every file with its SHA-256, size and row count. To check a copy:
+
+```sh
+node --experimental-strip-types src/cli.ts verify-release releases/2026.11.16
+node --experimental-strip-types src/cli.ts release-check releases/2026.11.16
+```
+
+- Case file: `case-file/en.md` and `case-file/tr.md`; every number in them
+  comes from `case-file/figures.json`.
+- Tables: `tables/backtest-leadtimes.csv` (per liquidated fund and flag) and
+  `tables/backtest-control-weekly.csv` (control-group counts per Friday),
+  documented in `docs/schema.md`.
+- Not included: raw pages, the daily archive, and rows of the public dataset
+  the backtest used for April to September 2026 (only figures derived from it).
 
 ## What the archive holds
 

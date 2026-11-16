@@ -1,0 +1,16 @@
+Data licence
+
+Our own work in this repository is licensed under the Creative Commons
+Attribution 4.0 International licence (CC BY 4.0):
+https://creativecommons.org/licenses/by/4.0/legalcode
+
+"Our own work" covers the derived tables, the method document, the schema
+documents and the case file. The source code is under the MIT licence
+(LICENSE).
+
+Data taken from a source remains subject to that source's terms. Each
+source, the terms check made for it and what this repository may publish
+from it are recorded in docs/sources/terms.md and sources.json.
+
+Attribution: "Fon İzi (MSC Labs), https://github.com/msc-labss/fon-izi",
+plus the original source named in each record.

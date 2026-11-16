@@ -1,0 +1,121 @@
+{
+  "release": "2026.11.16",
+  "createdAt": "2026-11-16T17:38:45.725Z",
+  "method": {
+    "version": "v0",
+    "sha256": "890d11602a6b65dd281685f60efbf9472ddf77e21d8373e85a148865c373e489"
+  },
+  "licences": {
+    "code": "MIT",
+    "data": "CC BY 4.0 (our derived data; source data stays under its source's terms, docs/sources/terms.md)"
+  },
+  "files": [
+    {
+      "path": "LICENSE",
+      "sha256": "27a2f9ef32a286e40a3f79c1b541588f1e752ae99c5c19d59f43b63b5cdccba1",
+      "bytes": 1065,
+      "licence": "licence text"
+    },
+    {
+      "path": "LICENSE-DATA",
+      "sha256": "d753aa03e688d175a4c5ab4282aaabd2dacbc46d339b79b576b21accee7ef977",
+      "bytes": 676,
+      "licence": "licence text"
+    },
+    {
+      "path": "METHOD.md",
+      "sha256": "890d11602a6b65dd281685f60efbf9472ddf77e21d8373e85a148865c373e489",
+      "bytes": 6095,
+      "licence": "CC BY 4.0"
+    },
+    {
+      "path": "README.md",
+      "sha256": "de49fda4b3c1b4a340035e25e14c14c6eab8fbe56517a39e95aa3fa37950b309",
+      "bytes": 3610,
+      "licence": "CC BY 4.0"
+    },
+    {
+      "path": "case-file/en.md",
+      "sha256": "7e36837069855c70ea5b56d8231b670c60e42ea19dc51e3bb0a797d286fdb331",
+      "bytes": 5190,
+      "licence": "CC BY 4.0 (our derived data; source data stays under its source's terms, docs/sources/terms.md)"
+    },
+    {
+      "path": "case-file/figures.json",
+      "sha256": "3e190fc168dc05afdbbea7757d7342f6a14b88e4b9ffc388cdc306b0bd147d41",
+      "bytes": 13807,
+      "licence": "CC BY 4.0 (our derived data; source data stays under its source's terms, docs/sources/terms.md)"
+    },
+    {
+      "path": "case-file/tr.md",
+      "sha256": "0119c23dceb0f74906d6c22fd88a7f641134db077323f8c009adea3b7288cade",
+      "bytes": 5984,
+      "licence": "CC BY 4.0 (our derived data; source data stays under its source's terms, docs/sources/terms.md)"
+    },
+    {
+      "path": "docs/history-coverage.csv",
+      "sha256": "378ccb6621f5e7a53770a1d0d5ca303b2dd194322c193daccab76402325e7d65",
+      "bytes": 383026,
+      "rows": 6951,
+      "licence": "CC BY 4.0 (our derived data; source data stays under its source's terms, docs/sources/terms.md)"
+    },
+    {
+      "path": "docs/schema.md",
+      "sha256": "ec6608b34e37b98f9c4c58fc6a0af9d9b83b65987ea09d26fe783e4b68d3491d",
+      "bytes": 13313,
+      "licence": "CC BY 4.0"
+    },
+    {
+      "path": "docs/sources/terms.md",
+      "sha256": "4d71650f9b91504784f0c7304fd85f750c325d5dde6688252d722550adb5d30c",
+      "bytes": 4269,
+      "licence": "CC BY 4.0"
+    },
+    {
+      "path": "events/2026-fund-crisis.csv",
+      "sha256": "054a1180f2f62d23cefaa21d70841b1e2c38ca24e118f54671bb28ae22d8618b",
+      "bytes": 61922,
+      "rows": 262,
+      "licence": "CC BY 4.0 (our derived data; source data stays under its source's terms, docs/sources/terms.md)"
+    },
+    {
+      "path": "events/2026-timeline.csv",
+      "sha256": "999ef491374bb12f94ebef670a6c5bd0add674d9ad74a48ad6cab95cc8f257e2",
+      "bytes": 10432,
+      "rows": 31,
+      "licence": "CC BY 4.0 (our derived data; source data stays under its source's terms, docs/sources/terms.md)"
+    },
+    {
+      "path": "events/README.md",
+      "sha256": "38c23301bee38da0beaf402917812d8f5edcb9c5b4418375986d93e24ad92e2f",
+      "bytes": 5093,
+      "licence": "CC BY 4.0"
+    },
+    {
+      "path": "method-versions.json",
+      "sha256": "fb2717afacc9f9aa3d4ecd89aa4a222d477da541e9293deb4aa81d98c0befa06",
+      "bytes": 79,
+      "licence": "CC BY 4.0"
+    },
+    {
+      "path": "tables/backtest-control-weekly.csv",
+      "sha256": "4676bf8811ef23c540749142834a4d1bb12ddb31a8407ffc622889a7963ee70c",
+      "bytes": 12633,
+      "rows": 392,
+      "licence": "CC BY 4.0 (our derived data; source data stays under its source's terms, docs/sources/terms.md)"
+    },
+    {
+      "path": "tables/backtest-leadtimes.csv",
+      "sha256": "38896e0d796c39bf7f9d6ef9dcb0867911d9831637608f82c3a51ca4e0a04897",
+      "bytes": 106321,
+      "rows": 2096,
+      "licence": "CC BY 4.0 (our derived data; source data stays under its source's terms, docs/sources/terms.md)"
+    },
+    {
+      "path": "wording.json",
+      "sha256": "f344d9f1d84cd600382ac268c3bd12e40798f4fe9a40a623ef06463146703443",
+      "bytes": 1104,
+      "licence": "CC BY 4.0"
+    }
+  ]
+}
