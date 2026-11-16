@@ -17,6 +17,8 @@
  *   node --experimental-strip-types src/cli.ts check-wording [files…]   (default: the repository's release texts)
  *   node --experimental-strip-types src/cli.ts build-figures --reports <dir> --out <figures.json>
  *   node --experimental-strip-types src/cli.ts render-case-file --figures <figures.json> --out <dir>
+ *   node --experimental-strip-types src/cli.ts build-release --release <name> --reports <dir> --case-file <dir> --out <dir>
+ *   node --experimental-strip-types src/cli.ts release-check <dir> | verify-release <dir>
  *   node --experimental-strip-types src/cli.ts backtest --archive <dir> --fund-list <fon-getirileri.html> --reports <dir> [--events <csv>]
  *   node --experimental-strip-types src/cli.ts record-coverage [--archive <dir>] [--events <csv> | --codes A,B] [--from 2026-01] [--to 2026-09] --out <csv>
  *
@@ -39,6 +41,7 @@ import { sha256 } from './fetch.ts';
 import { extractFundList } from './tefas.ts';
 import { checkWording } from './wording.ts';
 import { buildFigures } from './case-figures.ts';
+import { buildManifest, checkRelease, verifyRelease } from './release.ts';
 import { handTypedNumbers, render } from './figures.ts';
 import { archiveRecords, HOLDINGS_COLUMNS, holdingsTable, ISSUER_COLUMNS, issuerTable } from './tables.ts';
 import { dayPath, writeDay } from './archive.ts';
@@ -113,6 +116,8 @@ export async function main(argv: string[]): Promise<number> {
       method: { type: 'string', default: resolve(ROOT, 'METHOD.md') },
       reports: { type: 'string' },
       figures: { type: 'string' },
+      release: { type: 'string' },
+      'case-file': { type: 'string' },
       'fund-list': { type: 'string' },
       from: { type: 'string', default: '2025-01' },
       to: { type: 'string', default: '2026-09' },
@@ -253,6 +258,47 @@ export async function main(argv: string[]): Promise<number> {
         written += lines.length;
       }
       console.log(`import-dump-daily: ${written} daily records written, ${skipped} capture days skipped (already present)`);
+      return 0;
+    }
+    case 'build-release': {
+      const out = values.out as string | undefined;
+      const reports = values.reports as string | undefined;
+      const caseFile = values['case-file'] as string | undefined;
+      if (!out || !reports || !caseFile || !values.release) {
+        console.error('--release <name> --reports <dir> --case-file <dir> --out <dir> are required');
+        return 2;
+      }
+      if (existsSync(out)) {
+        console.error(`${out}: already exists; a release is built once`);
+        return 1;
+      }
+      const latest = (re: RegExp) => readdirSync(reports).filter((f) => re.test(f)).sort().at(-1)!;
+      const copy = (from: string, to: string) => {
+        mkdirSync(dirname(join(out, to)), { recursive: true });
+        writeFileSync(join(out, to), readFileSync(from));
+      };
+      for (const f of ['README.md', 'LICENSE', 'LICENSE-DATA', 'METHOD.md', 'method-versions.json', 'wording.json', 'docs/schema.md', 'docs/sources/terms.md', 'events/2026-fund-crisis.csv', 'events/2026-timeline.csv', 'events/README.md', 'docs/history-coverage.csv']) copy(join(ROOT, f), f);
+      copy(join(reports, latest(/^backtest-.*Z-leadtimes\.csv$/)), 'tables/backtest-leadtimes.csv');
+      copy(join(reports, latest(/^backtest-.*Z-control-weekly\.csv$/)), 'tables/backtest-control-weekly.csv');
+      for (const f of ['en.md', 'tr.md', 'figures.json']) copy(join(caseFile, f), `case-file/${f}`);
+      const method = parseMethod(readFileSync(join(out, 'METHOD.md'), 'utf8'));
+      const manifest = buildManifest(out, values.release as string, new Date().toISOString(), { version: method.version, sha256: method.sha256 });
+      writeFileSync(join(out, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
+      console.log(`build-release: ${manifest.files.length} files in ${out}`);
+      return 0;
+    }
+    case 'release-check':
+    case 'verify-release': {
+      const dir = positionals[1];
+      if (!dir) {
+        console.error(`usage: cli.ts ${positionals[0]} <release dir>`);
+        return 2;
+      }
+      const terms = JSON.parse(readFileSync(resolve(ROOT, 'wording.json'), 'utf8')).terms;
+      const errors = positionals[0] === 'release-check' ? checkRelease(dir, terms) : verifyRelease(dir);
+      for (const e of errors) console.error(e);
+      if (errors.length) return 1;
+      console.log(`${positionals[0]}: ${dir} passes`);
       return 0;
     }
     case 'build-figures': {

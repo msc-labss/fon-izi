@@ -628,3 +628,110 @@ One block per table: each column's name, type, unit, source, whether it can be e
  ]
 }
 ```
+
+### backtest-leadtimes
+
+`tables/backtest-leadtimes.csv`
+
+```json schema
+{
+ "table": "backtest-leadtimes",
+ "file": "tables/backtest-leadtimes.csv",
+ "columns": [
+  {
+   "name": "code",
+   "type": "string",
+   "unit": "",
+   "source": "event set",
+   "nullable": false,
+   "identifies": true,
+   "entity": "fund"
+  },
+  {
+   "name": "flag",
+   "type": "string",
+   "unit": "",
+   "source": "METHOD.md flag id",
+   "nullable": false,
+   "identifies": false
+  },
+  {
+   "name": "event",
+   "type": "string",
+   "unit": "",
+   "source": "event set",
+   "nullable": false,
+   "identifies": false
+  },
+  {
+   "name": "status",
+   "type": "string",
+   "unit": "",
+   "source": "lead, never or insufficient-data",
+   "nullable": false,
+   "identifies": false
+  },
+  {
+   "name": "since",
+   "type": "date",
+   "unit": "",
+   "source": "first grid date of the streak",
+   "nullable": true,
+   "identifies": false
+  },
+  {
+   "name": "days",
+   "type": "integer",
+   "unit": "days",
+   "source": "event date minus since",
+   "nullable": true,
+   "identifies": false
+  }
+ ]
+}
+```
+
+### backtest-control-weekly
+
+`tables/backtest-control-weekly.csv`
+
+```json schema
+{
+ "table": "backtest-control-weekly",
+ "file": "tables/backtest-control-weekly.csv",
+ "columns": [
+  {
+   "name": "flag",
+   "type": "string",
+   "unit": "",
+   "source": "METHOD.md flag id",
+   "nullable": false,
+   "identifies": false
+  },
+  {
+   "name": "date",
+   "type": "date",
+   "unit": "",
+   "source": "grid date",
+   "nullable": false,
+   "identifies": false
+  },
+  {
+   "name": "ok",
+   "type": "integer",
+   "unit": "count",
+   "source": "control funds with data on the date",
+   "nullable": false,
+   "identifies": false
+  },
+  {
+   "name": "triggered",
+   "type": "integer",
+   "unit": "count",
+   "source": "control funds the flag fired for on the date",
+   "nullable": false,
+   "identifies": false
+  }
+ ]
+}
+```

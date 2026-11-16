@@ -41,3 +41,13 @@ test('test workflow: npm test on every push and pull request, read-only', () => 
   assert.match(text, /run: npm test/);
   assert.doesNotMatch(text, /secrets\./);
 });
+
+test('workflow triggers: the release workflow runs only on manual dispatch', () => {
+  const text = code(read('release.yml')).join('\n');
+  const on = /^on:\n((?: {2}.*\n|\n)*?)(?=^\S)/m.exec(text)?.[1] ?? '';
+  const triggers = [...on.matchAll(/^ {2}([a-z_]+):/gm)].map((m) => m[1]);
+  assert.deepEqual(triggers, ['workflow_dispatch']);
+  assert.doesNotMatch(text, /\$\{\{\s*inputs\.release\s*\}\}"/); // input reaches scripts only through env
+  assert.match(text, /verify-release/);
+  assert.match(text, /release-check/);
+});

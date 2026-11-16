@@ -1,0 +1,57 @@
+name: Release
+
+# Publishes a release that is already committed under releases/<name>/
+# (manifest, tables, method, case file). Runs only when dispatched by hand:
+# publication is the maintainer's decision, after the legal read
+# (plan task 5.7). It verifies the manifest and the release rules, then tags
+# data-<name> and creates the GitHub release.
+on:
+  workflow_dispatch:
+    inputs:
+      release:
+        description: 'Release name: a directory under releases/'
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: '22.23.4'
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  release:
+    name: Verify and publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Verify
+        env:
+          RELEASE: ${{ inputs.release }}
+        run: |
+          [[ "$RELEASE" =~ ^[0-9A-Za-z._-]+$ ]] || { echo "bad release name"; exit 1; }
+          test -f "releases/$RELEASE/manifest.json"
+          node --experimental-strip-types src/cli.ts verify-release "releases/$RELEASE"
+          node --experimental-strip-types src/cli.ts release-check "releases/$RELEASE"
+
+      - name: Tag and publish
+        env:
+          RELEASE: ${{ inputs.release }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git tag "data-$RELEASE"
+          git push origin "data-$RELEASE"
+          gh release create "data-$RELEASE" --title "Fon İzi $RELEASE" --notes-file "releases/$RELEASE/case-file/en.md"
