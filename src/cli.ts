@@ -13,6 +13,8 @@
  *   node --experimental-strip-types src/cli.ts import-dump-daily --dump <clone of the dump> --archive <dir>
  *   node --experimental-strip-types src/cli.ts build-tables --archive <dir> --tables <dir>
  *   node --experimental-strip-types src/cli.ts flags --archive <dir> --day YYYY-MM-DD [--codes A,B | --events <csv>] --out <csv>
+ *   node --experimental-strip-types src/cli.ts validate-method [--method METHOD.md]
+ *   node --experimental-strip-types src/cli.ts backtest --archive <dir> --fund-list <fon-getirileri.html> --reports <dir> [--events <csv>]
  *   node --experimental-strip-types src/cli.ts record-coverage [--archive <dir>] [--events <csv> | --codes A,B] [--from 2026-01] [--to 2026-09] --out <csv>
  *
  * `check` validates the source registry; `validate-archive` validates every
@@ -28,7 +30,10 @@ import { validateArchive } from './archive.ts';
 import { runBackfill } from './backfill.ts';
 import { DAILY_GROUP, dailyRecords, fileVersions, holdingsRecords, HOLDINGS_GROUP, readAt } from './dump-import.ts';
 import { buildIndex, evaluate, RESULT_COLUMNS } from './flags.ts';
-import { parseMethod } from './method.ts';
+import { checkFrozen, parseMethod } from './method.ts';
+import { reportSection, runBacktest } from './backtest.ts';
+import { sha256 } from './fetch.ts';
+import { extractFundList } from './tefas.ts';
 import { archiveRecords, HOLDINGS_COLUMNS, holdingsTable, ISSUER_COLUMNS, issuerTable } from './tables.ts';
 import { dayPath, writeDay } from './archive.ts';
 import { recordCoverage } from './record-coverage.ts';
@@ -93,6 +98,8 @@ export async function main(argv: string[]): Promise<number> {
       events: { type: 'string', default: resolve(ROOT, 'events/2026-fund-crisis.csv') },
       timeline: { type: 'string', default: resolve(ROOT, 'events/2026-timeline.csv') },
       'no-witness': { type: 'boolean', default: false },
+      method: { type: 'string', default: resolve(ROOT, 'METHOD.md') },
+      reports: { type: 'string' },
       'fund-list': { type: 'string' },
       from: { type: 'string', default: '2025-01' },
       to: { type: 'string', default: '2026-09' },
@@ -233,6 +240,47 @@ export async function main(argv: string[]): Promise<number> {
         written += lines.length;
       }
       console.log(`import-dump-daily: ${written} daily records written, ${skipped} capture days skipped (already present)`);
+      return 0;
+    }
+    case 'validate-method': {
+      const file = values.method as string;
+      const errors = checkFrozen(parseMethod(readFileSync(file, 'utf8')), JSON.parse(readFileSync(resolve(ROOT, 'method-versions.json'), 'utf8')));
+      for (const e of errors) console.error(`${file}: ${e}`);
+      if (errors.length) return 1;
+      console.log(`${file}: frozen version matches`);
+      return 0;
+    }
+    case 'backtest': {
+      const method = parseMethod(readFileSync(values.method as string, 'utf8'));
+      const frozen = checkFrozen(method, JSON.parse(readFileSync(resolve(ROOT, 'method-versions.json'), 'utf8')));
+      if (frozen.length) {
+        for (const e of frozen) console.error(e);
+        return 1;
+      }
+      if (!values.reports || !values['fund-list']) {
+        console.error('--reports <dir> and --fund-list <saved /tr/fon-getirileri page> are required');
+        return 2;
+      }
+      const records = [...archiveRecords(values.archive as string)];
+      const archiveDigest = sha256(records.map((r) => r.id).sort().join('\n'));
+      const ix = buildIndex(records);
+      const events = parseCsvRecords(readFileSync(values.events as string, 'utf8')).records.map((r) => ({ code: r.fund_code, event: r.event, date: r.event_date }));
+      const eventCodes = new Set(events.map((e) => e.code));
+      const list = extractFundList(readFileSync(values['fund-list'] as string, 'utf8'));
+      const types = new Set(list.filter((e) => eventCodes.has(e.code)).map((e) => String(e.umbrellaType)));
+      const controls = list.filter((e) => !eventCodes.has(e.code) && types.has(String(e.umbrellaType)) && ix.price.has(e.code)).map((e) => e.code).sort();
+      const runAt = new Date().toISOString();
+      const run = runBacktest({ ix, method, events, controls, runAt, archiveDigest, log: (m) => console.error(m) });
+      const dir = values.reports as string;
+      mkdirSync(dir, { recursive: true });
+      const report = join(dir, 'backtest.md');
+      if (!existsSync(report)) writeFileSync(report, '# Backtest runs\n\nEvery run is appended; earlier runs are never removed.\n\n');
+      writeFileSync(report, `${readFileSync(report, 'utf8')}${reportSection(run)}\n`);
+      const stamp = runAt.replace(/[:.]/g, '');
+      writeFileSync(join(dir, `backtest-${stamp}-leadtimes.csv`), toCsv(['code', 'flag', 'event', 'status', 'since', 'days'], run.leadTimes));
+      writeFileSync(join(dir, `backtest-${stamp}-control-weekly.csv`), toCsv(['flag', 'date', 'ok', 'triggered'], run.flags.flatMap((f) => f.control.byDate.map((d) => ({ flag: f.flag, ...d })))));
+      writeFileSync(join(dir, `backtest-${stamp}.json`), `${JSON.stringify({ ...run, leadTimes: undefined }, null, 2)}\n`);
+      console.log(`backtest: ${run.eventFunds} event funds, ${run.controlFunds} controls, ${run.grid.dates} grid dates; report appended to ${report}`);
       return 0;
     }
     case 'flags': {

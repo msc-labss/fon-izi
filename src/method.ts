@@ -60,3 +60,16 @@ export function crosses(value: number, t: Threshold): boolean {
       return value < t.value;
   }
 }
+
+/**
+ * Frozen versions (spec fund-flag-backtest, "Frozen method version"):
+ * `method-versions.json` maps each method version to the SHA-256 of its
+ * METHOD.md. A document whose version is recorded must have that hash; a
+ * changed document needs a new version.
+ */
+export function checkFrozen(method: Method, versions: Record<string, string>): string[] {
+  const recorded = versions[method.version];
+  if (!recorded) return [`METHOD.md: version ${method.version} is not recorded in method-versions.json`];
+  if (recorded !== method.sha256) return [`METHOD.md: content changed but version is still ${method.version} (recorded ${recorded.slice(0, 12)}, now ${method.sha256.slice(0, 12)})`];
+  return [];
+}

@@ -52,7 +52,11 @@ export interface FundIndex {
 
 const DUMP_ALLOCATION_NAMES: Record<string, string> = { r: 'Repo', tr: 'Ters-Repo', hs: 'Hisse Senedi' };
 
-const push = <T>(m: Map<string, Obs<T>[]>, code: string, o: Obs<T>) => m.set(code, [...(m.get(code) ?? []), o]);
+const push = <T>(m: Map<string, Obs<T>[]>, code: string, o: Obs<T>) => {
+  let list = m.get(code);
+  if (!list) m.set(code, (list = []));
+  list.push(o);
+};
 const isNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
 
 export function buildIndex(records: Iterable<ArchiveRecord>): FundIndex {
@@ -107,7 +111,9 @@ export function buildIndex(records: Iterable<ArchiveRecord>): FundIndex {
     const holdings = d.holdings
       .filter((h) => isNum(h.weight))
       .map((h) => ({ key: h.bistCode || (h.isin ? (isinToCode.get(h.isin) ?? h.isin) : h.issuer), weight: h.weight as number }));
-    ix.reports.set(d.code, [...(ix.reports.get(d.code) ?? []), { month: d.reportMonth, holdings, availableAt: r.publishedAt ?? r.capturedAt, recordId: r.id }]);
+    let reps = ix.reports.get(d.code);
+    if (!reps) ix.reports.set(d.code, (reps = []));
+    reps.push({ month: d.reportMonth, holdings, availableAt: r.publishedAt ?? r.capturedAt, recordId: r.id });
   }
   const byDate = <T>(a: Obs<T>, b: Obs<T>) => (a.date < b.date ? -1 : a.date > b.date ? 1 : a.availableAt < b.availableAt ? -1 : a.availableAt > b.availableAt ? 1 : a.recordId < b.recordId ? -1 : 1);
   for (const m of [ix.price, ix.investors, ix.size, ix.allocation, ix.category, ix.title] as Map<string, Obs<unknown>[]>[]) for (const v of m.values()) v.sort(byDate);
