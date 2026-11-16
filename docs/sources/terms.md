@@ -12,7 +12,7 @@ A source stays `hash-only` until its terms clearly allow republishing.
 | Source | robots.txt | Terms found | Policy |
 |---|---|---|---|
 | TEFAS | pages allowed, `/api/` disallowed | none published; site disclaimer only | `hash-only` |
-| KAP | unreadable (HTTP 666 block page, twice) | none for data reuse found | not captured yet |
+| KAP | unreadable (HTTP 666 block page, twice) | none for data reuse found | read slowly, honest User-Agent (16 Nov 2026) |
 | SPK | none (404) | none found | `hash-only` (bulletins cited, not captured) |
 | Internet Archive | none on web.archive.org (404) | terms page needs JavaScript; not read | witness on (founder, 16 Nov 2026) |
 
@@ -48,9 +48,15 @@ A source stays `hash-only` until its terms clearly allow republishing.
   block page ("erişim problemi", with an error number to report to MKK
   support), while the home page and a fund page returned 200 to the same
   client.
-- **What we do about it:** the rules cannot be read, so Fon İzi does not
-  capture KAP automatically. Group 2 of the plan decides whether to ask
-  MKK; that would be an outward message, so the founder decides.
+- **What we do about it:** on 16 Nov 2026 the maintainer decided to treat
+  the unreadable robots.txt as "no rules" for `www.kap.org.tr` only. Fon
+  İzi then:
+  - reads KAP pages at most once every 10 seconds;
+  - uses its own `fon-izi` User-Agent, never disguised as a browser;
+  - stops at the first block or challenge page.
+
+  For every other host, an unreadable robots.txt still means "disallow
+  everything".
 - **Terms:** no data-use or automated-access terms found. The documents
   KAP publishes for members (the membership and filing directive, a new
   member guide, an e-signature guide) cover filing, not reuse of published

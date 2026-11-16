@@ -144,3 +144,12 @@ test('robots parser: TEFAS rules, own group, wildcards and ties', () => {
   assert.equal(rulesFromResponse(404, '', 'fon-izi').mode, 'all-allowed');
   assert.equal(rulesFromResponse(666, '', 'fon-izi').mode, 'all-disallowed');
 });
+
+test('an unreadable robots.txt counts as no rules only for hosts the founder listed (KAP, design D16)', async () => {
+  const routes = { 'https://www.kap.org.tr/robots.txt': [{ status: 666 }], 'https://www.kap.org.tr/tr/Bildirim/1': [{ status: 200, body: 'ok' }], 'https://other.example/robots.txt': [{ status: 666 }], 'https://other.example/x': [{ status: 200, body: 'ok' }] } as Record<string, Reply[]>;
+  const f = createFetcher({ fetchImpl: fakeFetch(routes), clock: fakeClock(), logError: quiet, unreadableRobotsAllowed: ['www.kap.org.tr'], hostIntervalMs: { 'www.kap.org.tr': 10_000 } });
+  assert.equal((await f.get('https://www.kap.org.tr/tr/Bildirim/1')).kind, 'response');
+  assert.equal((await f.get('https://other.example/x')).kind, 'robots-disallowed');
+  const kap = f.log.filter((e) => e.host === 'www.kap.org.tr').map((e) => e.at);
+  assert.ok(kap[1] - kap[0] >= 10_000);
+});

@@ -50,6 +50,12 @@ export interface FetcherOptions {
   minIntervalMs?: number;
   /** Longer spacing for some hosts, e.g. `{ 'web.archive.org': 5000 }`. */
   hostIntervalMs?: Record<string, number>;
+  /**
+   * Hosts whose unreadable robots.txt (not 2xx, not 4xx) counts as "no rules"
+   * instead of "disallow everything". Founder's decision for KAP only (plan
+   * design D16); every other host keeps RFC 9309.
+   */
+  unreadableRobotsAllowed?: readonly string[];
   retryDelayMs?: number;
   timeoutMs?: number;
   logError?: (message: string) => void;
@@ -63,6 +69,7 @@ export function createFetcher({
   userAgent = USER_AGENT,
   minIntervalMs = 1000,
   hostIntervalMs = {},
+  unreadableRobotsAllowed = [],
   retryDelayMs = 5000,
   timeoutMs = 30_000,
   logError = (m) => console.error(m),
@@ -122,9 +129,11 @@ export function createFetcher({
   function robotsFor(origin: string): Promise<RobotsRules> {
     let rules = robotsByOrigin.get(origin);
     if (!rules) {
-      rules = request(`${origin}/robots.txt`).then((r) =>
-        r.kind === 'response' ? rulesFromResponse(r.status, r.body, PRODUCT) : rulesFromResponse(null, '', PRODUCT),
-      );
+      const host = new URL(origin).host;
+      rules = request(`${origin}/robots.txt`).then((r) => {
+        const parsed = r.kind === 'response' ? rulesFromResponse(r.status, r.body, PRODUCT) : rulesFromResponse(null, '', PRODUCT);
+        return parsed.mode === 'all-disallowed' && unreadableRobotsAllowed.includes(host) ? { mode: 'all-allowed' as const, rules: [] } : parsed;
+      });
       robotsByOrigin.set(origin, rules);
     }
     return rules;

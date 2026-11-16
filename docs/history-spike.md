@@ -15,7 +15,7 @@ Face, Zenodo and data.world on 16 Nov 2026:
 
 | Source | Fields | Range | Licence | Verdict |
 |---|---|---|---|---|
-| [sercannnnn/fon-analiz-veri](https://github.com/sercannnnn/fon-analiz-veri) (GitHub) | date, code, price, investors, portfolio size, units in circulation; allocation only 2026-07 onward | 3 Feb 2025 to now. Gaps (README): 27 Feb–1 Sep 2025, 27–29 May 2026 | **none stated** | Best coverage. **Cannot be republished without the owner's permission.** |
+| [sercannnnn/fon-analiz-veri](https://github.com/sercannnnn/fon-analiz-veri) (GitHub) | date, code, price, investors, portfolio size, units in circulation; allocation only 2026-07 onward | 3 Feb 2025 to now. Gaps (README): 27 Feb–1 Sep 2025, 27–29 May 2026 | **none stated** | Best coverage. **Used privately for research; its rows are not republished.** |
 | [kemalersin/fonparam-database](https://github.com/kemalersin/fonparam-database) | investor count, AUM, shares (`fund_historical_values`) | "last 1 year" per README, dates unstated | MIT | Probably too short; not checked |
 | [hakyemezi/turkeyfundsdata](https://github.com/hakyemezi/turkeyfundsdata) | scraper only, no data committed | — | MIT | Column reference only |
 | Hugging Face, Zenodo | nothing in range | — | — | — |
@@ -29,6 +29,18 @@ The crisis funds are present daily:
 - TLY: 22 rows in each month.
 - DOH, KSA and T3B: present on 2025-09-01 and 2026-09-01.
 - Columns: `tarih, fonKodu, fiyat, kisiSayisi, portfoyBuyukluk, tedPaySayisi`.
+
+**Private use (decided 16 Nov 2026):** the dump is cloned on the
+maintainer's machine with a manifest of every file's SHA-256 (commit
+`48751f0`), and is not part of this repository.
+
+- **Fund holdings (`fon_icerik`):** monthly, taken from KAP: BIST code,
+  ISIN, nominal, market value and weight per holding. 2026-08 covers 733
+  funds, 30 of them crisis funds; 2026-09 covers 9 crisis funds.
+- **Share prices (`hisse`):** daily closes and volume from İş Yatırım, for
+  BIST 100 shares only.
+- **Provenance:** the repository was created on 5 Sep 2026, so rows dated
+  earlier were collected from TEFAS afterwards, not on the day.
 
 ## 2. Internet Archive captures of TEFAS pages (task 2.4)
 
@@ -87,9 +99,16 @@ Results are in section 5.
 - **Mirror:** ekofin.net shows fund portfolios, but it loads them in the
   browser, is a commercial service and its terms are unread. Not used.
 
-**Consequence:** until KAP access is settled, the flags `free-float-share`,
-`manager-cluster` and `days-to-exit` have no holdings input and report
-`insufficient-data` (metrics spec).
+**Decided 16 Nov 2026:** KAP is read slowly with an honest User-Agent
+(`terms.md`, KAP).
+
+- **What we know:** a fund's KAP page lists its expected weekly
+  "Portföy Dağılım Raporu" filings, but not the published ones.
+- **Manager filings:** the manager's disclosure list
+  (`/tr/bildirim-sorgu-sonuc?member={manager}`) is server-rendered and
+  returns about a year of filings. Tera's includes 148 "Pay Alım Satım
+  Bildirimi" share-trade notices naming its funds.
+- **Still open:** how to query published portfolio reports by fund.
 
 ## 4. Free float and daily volume (task 2.3)
 
@@ -116,15 +135,12 @@ written consent. **Without that consent, `days-to-exit` stays
 
 Pending the coverage run.
 
-## 6. Decisions for the founder
+## 6. Decisions (16 Nov 2026)
 
-These are outward messages, so each is the founder's call.
-
-1. **The dump owner:** ask the owner of `sercannnnn/fon-analiz-veri` for a
-   licence, or for permission to import the data and republish it with
-   credit. It is the only source with daily investor counts and sizes for
-   Sep 2025 to Sep 2026.
-2. **MKK (KAP operator):** ask about automated reading of KAP fund
-   disclosures. Their block page names `kapdestek@mkk.com.tr`.
-3. **Borsa İstanbul:** ask for written consent, or an academic licence,
-   for daily per-share volume (DataStore has an academic application).
+1. **The dump owner:** not asked for now. The dump is used privately, and
+   the owner is asked only if we want to republish its rows.
+2. **MKK (KAP operator):** not asked. KAP is read slowly with an honest
+   User-Agent.
+3. **Borsa İstanbul:** not asked. `days-to-exit` stays `insufficient-data`
+   except for BIST 100 shares covered by the dump's private `hisse`
+   series.
