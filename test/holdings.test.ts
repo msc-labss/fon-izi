@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { test } from 'node:test';
 import { gzipSync } from 'node:zlib';
 import { validateArchive, writeDay } from '../src/archive.ts';
-import { fileVersions, holdingsRecords, HOLDINGS_GROUP, readAt } from '../src/dump-import.ts';
+import { dailyRecords, fileVersions, holdingsRecords, HOLDINGS_GROUP, readAt } from '../src/dump-import.ts';
 import { archiveRecords, holdingsTable, issuerTable, NO_FREE_FLOAT } from '../src/tables.ts';
 
 const HEADER = 'fonKodu,raporTarihi,kiymetAdi,kiymetAdiHam,bistKodu,ihracci,isin,tur,nominal,rayicDeger,agirlik,kurucuDuzeni,kaynak,listeTam,satirTuru,veriGunu,raporBasligi';
@@ -83,4 +83,25 @@ test('issuer rows carry the record ids of the reports they appear in, and say wh
     assert.equal(i.free_float_source, NO_FREE_FLOAT);
   }
   assert.equal(issuers[0].report_record_ids.split(';').length, 2); // OZATD held by TLY and DOH
+});
+
+test('daily figures: one record per TEFAS date, published at the end of that day, captured at the first commit with it', () => {
+  const repo = mkdtempSync(join(tmpdir(), 'fon-izi-dump-'));
+  const commit = (when: string, msg: string) => execFileSync('git', ['-C', repo, '-c', 'user.name=t', '-c', 'user.email=t@t.invalid', 'commit', '-q', '-m', msg], { env: { ...process.env, GIT_COMMITTER_DATE: when, GIT_AUTHOR_DATE: when } });
+  execFileSync('git', ['-C', repo, 'init', '-q']);
+  mkdirSync(join(repo, 'arsiv'));
+  const path = 'arsiv/tefas_2026-09.csv.gz';
+  const h = 'tarih,fonKodu,fiyat,kisiSayisi,portfoyBuyukluk,tedPaySayisi';
+  writeFileSync(join(repo, path), gzipSync(`${h}\n2026-09-01,TLY,1000.5,100000,35000000000,35000000\n`));
+  execFileSync('git', ['-C', repo, 'add', '.']);
+  commit('2026-09-02T02:15:00Z', 'a');
+  writeFileSync(join(repo, path), gzipSync(`${h}\n2026-09-01,TLY,1000.5,100000,35000000000,35000000\n2026-09-02,TLY,0,104210,0,0\n`));
+  execFileSync('git', ['-C', repo, 'add', '.']);
+  commit('2026-09-03T02:15:00Z', 'b');
+  const lines = [...dailyRecords('daily-figures', path, fileVersions(repo, path), readAt(repo, path)).values()].flat().map((l) => JSON.parse(l));
+  assert.deepEqual(lines.map((r) => [r.data.date, r.publishedAt, r.capturedAt]), [
+    ['2026-09-01', '2026-09-01T20:59:59.000Z', '2026-09-02T02:15:00.000Z'],
+    ['2026-09-02', '2026-09-02T20:59:59.000Z', '2026-09-03T02:15:00.000Z'],
+  ]);
+  assert.deepEqual(lines[1].data.rows, [{ code: 'TLY', price: 0, investors: 104210, size: 0, units: 0 }]);
 });

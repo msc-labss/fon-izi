@@ -10,7 +10,9 @@
  *   node --experimental-strip-types src/cli.ts backfill --fund-list <fon-getirileri.html> [--archive <dir>] [--from 2025-01] [--to 2026-09] [--codes A,B] [--cache <dir>]
  *     [--retry-failures <earlier run summary> --group <new group>]   re-extract only the captures that failed
  *   node --experimental-strip-types src/cli.ts import-dump-holdings --dump <clone of the dump> --archive <dir>
+ *   node --experimental-strip-types src/cli.ts import-dump-daily --dump <clone of the dump> --archive <dir>
  *   node --experimental-strip-types src/cli.ts build-tables --archive <dir> --tables <dir>
+ *   node --experimental-strip-types src/cli.ts flags --archive <dir> --day YYYY-MM-DD [--codes A,B | --events <csv>] --out <csv>
  *   node --experimental-strip-types src/cli.ts record-coverage [--archive <dir>] [--events <csv> | --codes A,B] [--from 2026-01] [--to 2026-09] --out <csv>
  *
  * `check` validates the source registry; `validate-archive` validates every
@@ -24,7 +26,9 @@ import { dirname, join, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { validateArchive } from './archive.ts';
 import { runBackfill } from './backfill.ts';
-import { fileVersions, holdingsRecords, HOLDINGS_GROUP, readAt } from './dump-import.ts';
+import { DAILY_GROUP, dailyRecords, fileVersions, holdingsRecords, HOLDINGS_GROUP, readAt } from './dump-import.ts';
+import { buildIndex, evaluate, RESULT_COLUMNS } from './flags.ts';
+import { parseMethod } from './method.ts';
 import { archiveRecords, HOLDINGS_COLUMNS, holdingsTable, ISSUER_COLUMNS, issuerTable } from './tables.ts';
 import { dayPath, writeDay } from './archive.ts';
 import { recordCoverage } from './record-coverage.ts';
@@ -203,6 +207,43 @@ export async function main(argv: string[]): Promise<number> {
         }
       }
       console.log(`import-dump-holdings: ${written} holdings reports written, ${skipped} day files skipped (already present)`);
+      return 0;
+    }
+    case 'import-dump-daily': {
+      const repo = values.dump as string | undefined;
+      if (!repo) {
+        console.error('--dump <clone of the dump> is required');
+        return 2;
+      }
+      const byDay = new Map<string, string[]>();
+      for (const f of readdirSync(join(repo, 'arsiv')).sort()) {
+        const kind = /^tefas_\d{4}-\d{2}\.csv\.gz$/.test(f) ? 'daily-figures' : /^tefas_dagilim_\d{4}-\d{2}\.csv\.gz$/.test(f) ? 'daily-allocation' : null;
+        if (!kind) continue;
+        const path = `arsiv/${f}`;
+        dailyRecords(kind, path, fileVersions(repo, path), readAt(repo, path), byDay);
+      }
+      let written = 0;
+      let skipped = 0;
+      for (const [day, lines] of [...byDay].sort()) {
+        if (existsSync(dayPath(values.archive as string, DAILY_GROUP, day))) {
+          skipped++;
+          continue;
+        }
+        writeDay(values.archive as string, DAILY_GROUP, day, [...lines].sort());
+        written += lines.length;
+      }
+      console.log(`import-dump-daily: ${written} daily records written, ${skipped} capture days skipped (already present)`);
+      return 0;
+    }
+    case 'flags': {
+      const method = parseMethod(readFileSync(resolve(ROOT, 'METHOD.md'), 'utf8'));
+      const ix = buildIndex(archiveRecords(values.archive as string));
+      const codes = values.codes ? (values.codes as string).split(',').filter(Boolean) : [...new Set(parseCsvRecords(readFileSync(values.events as string, 'utf8')).records.map((r) => r.fund_code))].sort();
+      const rows = codes.flatMap((c) => evaluate(ix, method, c, values.day as string));
+      const out = values.out as string;
+      mkdirSync(dirname(out), { recursive: true });
+      writeFileSync(out, toCsv(RESULT_COLUMNS, rows as unknown as Record<string, string>[]));
+      console.log(`flags: ${rows.length} results for ${codes.length} funds on ${values.day} (method ${method.version}, ${method.sha256.slice(0, 12)})`);
       return 0;
     }
     case 'build-tables': {
