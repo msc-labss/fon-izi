@@ -3,7 +3,7 @@ import { mkdtempSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { test } from 'node:test';
-import { dayPath } from '../src/archive.ts';
+import { dayPath, readLines } from '../src/archive.ts';
 import { parseCsvRecords } from '../src/csv.ts';
 import { createFetcher } from '../src/fetch.ts';
 import type { Clock, FetchLike } from '../src/fetch.ts';
@@ -37,7 +37,7 @@ async function run(enabled: boolean, listed: string[], spn: (target: string) => 
   const { witness, rest } = createWitness({ enabled, urls: listed }, fetcher);
   const root = mkdtempSync(join(tmpdir(), 'fon-izi-w-'));
   const result = await runSnapshot({ root, day: '2026-11-17', sources: SOURCES, fetcher, clock, witness, witnessRest: rest, log: () => {} });
-  const records = readFileSync(dayPath(root, 'tefas', '2026-11-17'), 'utf8').trim().split('\n').map((l) => JSON.parse(l));
+  const records = readLines(dayPath(root, 'tefas', '2026-11-17')).filter((l) => l !== '').map((l) => JSON.parse(l));
   return { result, records, fetcher };
 }
 
@@ -76,9 +76,9 @@ test('Save Page Now header parsing', () => {
   assert.equal(captureUrl(null), null);
 });
 
-test('the committed witness list is off and covers the fund list and every event-set fund', () => {
+test('the committed witness list is on (founder, 16 Nov 2026) and covers the fund list and every event-set fund', () => {
   const config = parseWitnessConfig(readFileSync(join(ROOT, 'witness-list.json'), 'utf8'));
-  assert.equal(config.enabled, false);
+  assert.equal(config.enabled, true);
   const { records } = parseCsvRecords(readFileSync(join(ROOT, 'events/2026-fund-crisis.csv'), 'utf8'));
   for (const code of new Set(records.map((r) => r.fund_code))) assert.ok(config.urls.includes(DETAIL_URL(code)), code);
   assert.ok(config.urls.includes(LIST_URL));

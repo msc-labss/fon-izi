@@ -3,7 +3,7 @@ import { existsSync, mkdtempSync, readFileSync, writeFileSync, mkdirSync } from 
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { dayPath, validateArchive } from '../src/archive.ts';
+import { dayPath, readLines, validateArchive } from '../src/archive.ts';
 import { createFetcher } from '../src/fetch.ts';
 import type { Clock, FetchLike } from '../src/fetch.ts';
 import type { Source } from '../src/registry.ts';
@@ -54,9 +54,8 @@ function routesFor(codes: string[], listCodes = codes): Record<string, Reply> {
 }
 
 const read = (root: string, day: string) =>
-  readFileSync(dayPath(root, 'tefas', day), 'utf8')
-    .trim()
-    .split('\n')
+  readLines(dayPath(root, 'tefas', day))
+    .filter((l) => l !== '')
     .map((l) => JSON.parse(l));
 
 async function snap(root: string, day: string, routes: Record<string, Reply>, extra: Partial<Parameters<typeof runSnapshot>[0]> = {}, robots?: string) {

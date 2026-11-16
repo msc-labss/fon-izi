@@ -7,10 +7,14 @@ name: Daily snapshot
 # A failed snapshot writes nothing and the run turns red; GitHub e-mails the
 # repository owner. A day that is lost stays empty, never filled in later.
 #
-# Manual run: gh workflow run snapshot.yml
+# Until publication is approved (founder, 16 Nov 2026; plan task 1.13) this
+# workflow has no schedule and must not be dispatched: capture runs
+# privately on the maintainer's machine (tool/box/). When publication is
+# approved, the schedule below goes back:
+#
+#   schedule:
+#     - cron: '0 3 * * *'
 on:
-  schedule:
-    - cron: '0 3 * * *'
   workflow_dispatch:
 
 permissions:

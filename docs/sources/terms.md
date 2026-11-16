@@ -14,7 +14,7 @@ A source stays `hash-only` until its terms clearly allow republishing.
 | TEFAS | pages allowed, `/api/` disallowed | none published; site disclaimer only | `hash-only` |
 | KAP | unreadable (HTTP 666 block page, twice) | none for data reuse found | not captured yet |
 | SPK | none (404) | none found | `hash-only` (bulletins cited, not captured) |
-| Internet Archive | none on web.archive.org (404) | terms page needs JavaScript; not read | witness off |
+| Internet Archive | none on web.archive.org (404) | terms page needs JavaScript; not read | witness on (founder, 16 Nov 2026) |
 
 ## TEFAS
 
@@ -81,5 +81,5 @@ A source stays `hash-only` until its terms clearly allow republishing.
   - it is not for crawling whole sites;
   - submissions are anonymous;
   - Archive-It is the paid service for regular, organised collection.
-- **Before witnessing is switched on,** the founder reads the terms in a
-  browser and decides (task 1.11).
+- **Switched on by the founder on 16 Nov 2026,** before the terms were
+  read. Reading them in a browser is still open.

@@ -17,10 +17,12 @@ test('every workflow uses first-party actions only', () => {
   }
 });
 
-test('snapshot workflow: daily at 03:00 UTC and by hand, contents write only', () => {
+test('snapshot workflow: manual only until publication is approved, contents write only', () => {
   const lines = code(read('snapshot.yml'));
   const text = lines.join('\n');
-  assert.match(text, /^on:\n {2}schedule:\n {4}- cron: '0 3 \* \* \*'\n {2}workflow_dispatch:\n/m);
+  assert.match(text, /^on:\n {2}workflow_dispatch:\n\n/m);
+  assert.doesNotMatch(text, /^\s*schedule:/m);
+  assert.match(read('snapshot.yml'), /^#\s+- cron: '0 3 \* \* \*'$/m);
   assert.match(text, /^permissions:\n {2}contents: write\n\n/m);
   assert.equal((text.match(/^\s*permissions:/gm) ?? []).length, 1);
   assert.match(text, /^defaults:\n {2}run:\n {4}shell: bash$/m);
@@ -29,5 +31,13 @@ test('snapshot workflow: daily at 03:00 UTC and by hand, contents write only', (
   assert.match(text, /concurrency:\n {2}group: snapshot\n {2}cancel-in-progress: false/);
   assert.match(text, /if: \$\{\{ !cancelled\(\) && steps\.validate\.outcome == 'success' \}\}/);
   assert.match(text, /git config user\.name 'github-actions\[bot\]'/);
+  assert.doesNotMatch(text, /secrets\./);
+});
+
+test('test workflow: npm test on every push and pull request, read-only', () => {
+  const text = code(read('test.yml')).join('\n');
+  assert.match(text, /^on:\n {2}push:\n {2}pull_request:\n/m);
+  assert.match(text, /^permissions:\n {2}contents: read\n/m);
+  assert.match(text, /run: npm test/);
   assert.doesNotMatch(text, /secrets\./);
 });

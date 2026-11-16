@@ -9,8 +9,10 @@ public data about those funds has since changed or gone from the pages that
 showed it. Fon İzi records what public sources show each day, with enough
 provenance that every record can be cited and checked later.
 
-> **Status:** under construction. The daily snapshot of TEFAS fund pages is
-> being built first; see `docs/sources/` for what each source offers.
+> **Status:** the code is public; the data is not yet. Daily capture runs
+> privately until a legal read clears publishing extracted TEFAS fields
+> (`docs/sources/terms.md`). The event set of the 131 funds SPK ordered
+> liquidated on 17 Sep 2026 is in `events/`.
 
 ## What the archive holds
 

@@ -1,6 +1,6 @@
 {
-  "enabled": false,
-  "note": "Switched on only by the founder (docs/sources/terms.md, Internet Archive). Fund list, the 131 funds of events/2026-fund-crisis.csv, and the SPK bulletins the event set cites.",
+  "enabled": true,
+  "note": "Switched on by the founder on 16 Nov 2026 (docs/sources/terms.md, Internet Archive). Fund list, the 131 funds of events/2026-fund-crisis.csv, and the SPK bulletins the event set cites.",
   "urls": [
     "https://www.tefas.gov.tr/tr/fon-getirileri",
     "https://www.tefas.gov.tr/tr/fon-detayli-analiz/ABG",

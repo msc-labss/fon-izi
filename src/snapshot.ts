@@ -13,9 +13,9 @@
  * more than 5% of fund pages fail. Exit 1 after writing when a path was
  * disallowed by robots.txt (the summary lists it).
  */
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { dayPath, writeDay, writeNew, writeRaw } from './archive.ts';
+import { dayPath, readLines, writeDay, writeNew, writeRaw } from './archive.ts';
 import { TOOL_VERSION } from './fetch.ts';
 import type { Clock, Fetcher, FetchResult } from './fetch.ts';
 import { makeRecord } from './record.ts';
@@ -64,11 +64,11 @@ export function previousCodes(root: string, day: string): { day: string; codes: 
   for (const y of readdirSync(base))
     for (const m of readdirSync(join(base, y)))
       for (const f of readdirSync(join(base, y, m)))
-        if (/^\d{4}-\d{2}-\d{2}\.jsonl$/.test(f) && f.slice(0, 10) < day) days.push(f.slice(0, 10));
+        if (/^\d{4}-\d{2}-\d{2}\.jsonl\.gz$/.test(f) && f.slice(0, 10) < day) days.push(f.slice(0, 10));
   const last = days.sort().at(-1);
   if (!last) return null;
   const codes = new Set<string>();
-  for (const line of readFileSync(dayPath(root, GROUP, last), 'utf8').split('\n')) {
+  for (const line of readLines(dayPath(root, GROUP, last))) {
     if (!line) continue;
     const rec = JSON.parse(line) as ArchiveRecord;
     if (rec.kind === 'list-entry') codes.add((rec.data as { code: string }).code);

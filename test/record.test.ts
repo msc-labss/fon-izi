@@ -4,7 +4,7 @@ import { existsSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { test } from 'node:test';
-import { dayPath, validateArchive, writeCorrections, writeDay, writeRaw } from '../src/archive.ts';
+import { dayPath, readLines, validateArchive, writeCorrections, writeDay, writeRaw } from '../src/archive.ts';
 import { sha256 } from '../src/fetch.ts';
 import { canonicalJson, makeRecord, validateRecord } from '../src/record.ts';
 import type { ArchiveRecord } from '../src/record.ts';
@@ -45,7 +45,7 @@ test('record without provenance is rejected, naming the record and the field', (
   writeDay(root, 'tefas', '2026-11-17', [good, JSON.stringify(broken)]);
   const res = spawnSync(process.execPath, ['--experimental-strip-types', '--no-warnings', CLI, 'validate-archive', '--archive', root], { encoding: 'utf8' });
   assert.notEqual(res.status, 0);
-  assert.match(res.stderr, new RegExp(`tefas/2026/11/2026-11-17\\.jsonl:2 ${broken.id.slice(0, 12)}: missing sha256`));
+  assert.match(res.stderr, new RegExp(`tefas/2026/11/2026-11-17\\.jsonl\\.gz:2 ${broken.id.slice(0, 12)}: missing sha256`));
   assert.doesNotMatch(res.stderr, /:1 /);
 });
 
@@ -60,7 +60,7 @@ test('overwrite attempt: an existing day file is refused', () => {
   const line = makeRecord(fields()).line;
   writeDay(root, 'tefas', '2026-11-17', [line]);
   assert.throws(() => writeDay(root, 'tefas', '2026-11-17', [line]), /refusing to overwrite .*2026-11-17\.jsonl/);
-  assert.equal(readFileSync(dayPath(root, 'tefas', '2026-11-17'), 'utf8'), `${line}\n`);
+  assert.equal(readLines(dayPath(root, 'tefas', '2026-11-17')).join('\n'), `${line}\n`);
 });
 
 test('a correction is a new record that names the record it corrects', () => {
@@ -72,7 +72,7 @@ test('a correction is a new record that names the record it corrects', () => {
   const { records, errors } = validateArchive(root);
   assert.equal(records, 2);
   assert.deepEqual(errors, []);
-  assert.equal(readFileSync(dayPath(root, 'tefas', '2026-11-17'), 'utf8'), `${original.line}\n`);
+  assert.equal(readLines(dayPath(root, 'tefas', '2026-11-17')).join('\n'), `${original.line}\n`);
 });
 
 test('disclosure with a publication stamp keeps both times apart', () => {
@@ -99,4 +99,16 @@ test('raw bodies are content-addressed and written once', () => {
   assert.ok(existsSync(p));
   writeFileSync(join(root, 'note.txt'), 'not scanned');
   assert.deepEqual(validateArchive(root), { records: 0, errors: [] });
+});
+
+test('day files are gzip and byte-identical for the same lines', () => {
+  const a = tmp();
+  const b = tmp();
+  const lines = [makeRecord(fields()).line, makeRecord(fields({ data: { code: 'AAL' } })).line];
+  writeDay(a, 'tefas', '2026-11-17', lines);
+  writeDay(b, 'tefas', '2026-11-17', lines);
+  const bytesA = readFileSync(dayPath(a, 'tefas', '2026-11-17'));
+  assert.deepEqual([bytesA[0], bytesA[1]], [0x1f, 0x8b]);
+  assert.ok(dayPath(a, 'tefas', '2026-11-17').endsWith('.jsonl.gz'));
+  assert.equal(sha256(bytesA), sha256(readFileSync(dayPath(b, 'tefas', '2026-11-17'))));
 });

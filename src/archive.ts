@@ -1,9 +1,9 @@
 /**
  * Archive files (design D4).
  *
- *   archive/<group>/<YYYY>/<MM>/<YYYY-MM-DD>.jsonl       one record per line
+ *   archive/<group>/<YYYY>/<MM>/<YYYY-MM-DD>.jsonl.gz    one record per line, gzip
  *   archive/<group>/<YYYY>/<MM>/<YYYY-MM-DD>.run.json    run summary (not a record)
- *   archive/corrections/<YYYY-MM-DD>.jsonl              correction records
+ *   archive/corrections/<YYYY>/<MM>/<YYYY-MM-DD>.jsonl.gz  correction records
  *   archive/raw/<aa>/<sha256>                           raw bodies, `publish` sources only
  *
  * Every write creates a new file and refuses an existing one: the archive
@@ -12,11 +12,14 @@
  */
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
+import { gunzipSync, gzipSync } from 'node:zlib';
 import { validateRecord } from './record.ts';
 
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
 
-export function dayPath(root: string, group: string, day: string, suffix = '.jsonl'): string {
+export const DAY_SUFFIX = '.jsonl.gz';
+
+export function dayPath(root: string, group: string, day: string, suffix = DAY_SUFFIX): string {
   if (!DAY.test(day)) throw new Error(`bad day: ${day}`);
   return join(root, group, day.slice(0, 4), day.slice(5, 7), `${day}${suffix}`);
 }
@@ -34,7 +37,7 @@ export function writeNew(path: string, content: string | Uint8Array): void {
 
 export function writeDay(root: string, group: string, day: string, lines: readonly string[]): string {
   const path = dayPath(root, group, day);
-  writeNew(path, lines.map((l) => `${l}\n`).join(''));
+  writeNew(path, gzipSync(Buffer.from(lines.map((l) => `${l}\n`).join(''), 'utf8'), { level: 9 }));
   return path;
 }
 
@@ -49,13 +52,19 @@ export function writeRaw(root: string, hash: string, body: string | Uint8Array):
   return path;
 }
 
+/** Lines of a day file, gzip or plain. */
+export function readLines(file: string): string[] {
+  const bytes = readFileSync(file);
+  return (file.endsWith('.gz') ? gunzipSync(bytes) : bytes).toString('utf8').split('\n');
+}
+
 function* jsonlFiles(dir: string): Generator<string> {
   if (!existsSync(dir)) return;
   for (const name of readdirSync(dir).sort()) {
     const p = join(dir, name);
     if (statSync(p).isDirectory()) {
       if (name !== 'raw') yield* jsonlFiles(p);
-    } else if (name.endsWith('.jsonl')) yield p;
+    } else if (name.endsWith('.jsonl') || name.endsWith('.jsonl.gz')) yield p;
   }
 }
 
@@ -64,7 +73,7 @@ export function validateArchive(root: string): { records: number; errors: string
   const errors: string[] = [];
   let records = 0;
   for (const file of jsonlFiles(root)) {
-    const lines = readFileSync(file, 'utf8').split('\n');
+    const lines = readLines(file);
     lines.forEach((line, i) => {
       if (line === '') return;
       records++;
