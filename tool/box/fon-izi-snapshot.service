@@ -1,0 +1,21 @@
+# Fon İzi: private daily TEFAS snapshot (plan design D15).
+#
+# Install, with the maintainer's yes:
+#   git clone git@github.com:msc-labss/fon-izi.git ~/.fon-izi/run
+#   git init ~/.fon-izi/private
+#   cp ~/.fon-izi/run/tool/box/fon-izi-snapshot.{service,timer} ~/.config/systemd/user/
+#   systemctl --user daemon-reload && systemctl --user enable --now fon-izi-snapshot.timer
+# Update the tool only after a reviewed push: git -C ~/.fon-izi/run pull --ff-only
+[Unit]
+Description=Fon İzi: private daily TEFAS snapshot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/.fon-izi/run
+Environment=NODE=%h/.nvm/versions/node/v22.23.4/bin/node
+ExecStart=/usr/bin/env bash %h/.fon-izi/run/tool/box/daily.sh
+# About 36 minutes for TEFAS plus Save Page Now for the witness list.
+TimeoutStartSec=3h
+Nice=10

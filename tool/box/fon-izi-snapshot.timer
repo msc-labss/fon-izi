@@ -1,0 +1,12 @@
+# 03:00 UTC (06:00 TR), after TEFAS's end-of-day update. A day missed while
+# the machine was off runs once at start-up.
+[Unit]
+Description=Fon İzi: private daily TEFAS snapshot timer
+
+[Timer]
+OnCalendar=*-*-* 03:00:00 UTC
+Persistent=true
+RandomizedDelaySec=5min
+
+[Install]
+WantedBy=timers.target

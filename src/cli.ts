@@ -3,13 +3,14 @@
  *
  *   node --experimental-strip-types src/cli.ts check [--registry sources.json]
  *   node --experimental-strip-types src/cli.ts validate-archive [--archive archive]
- *   node --experimental-strip-types src/cli.ts snapshot [--archive archive] [--day YYYY-MM-DD] [--limit N]
+ *   node --experimental-strip-types src/cli.ts snapshot [--archive archive] [--day YYYY-MM-DD] [--limit N] [--no-witness]
  *   node --experimental-strip-types src/cli.ts validate-events [--events events/2026-fund-crisis.csv]
  *
  * `check` validates the source registry; `validate-archive` validates every
  * record line; `snapshot` captures the day's TEFAS figures;
  * `validate-events` checks that every event row cites an official source.
- * Each exits 1 naming the problem. `--limit` is for local trials only.
+ * Each exits 1 naming the problem. `--limit` and `--no-witness` are for
+ * local trials only.
  */
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
@@ -49,12 +50,13 @@ function validate(archiveDir: string): number {
   return 0;
 }
 
-async function snapshot(registryPath: string, archiveDir: string, day: string, limit: number | undefined): Promise<number> {
+async function snapshot(registryPath: string, archiveDir: string, day: string, limit: number | undefined, noWitness: boolean): Promise<number> {
   const { sources, errors } = loadRegistry(registryPath);
   for (const e of errors) console.error(e);
   if (errors.length) return 1;
   const fetcher = createFetcher({ hostIntervalMs: { 'web.archive.org': 5000 } });
-  const config = parseWitnessConfig(readFileSync(resolve(ROOT, 'witness-list.json'), 'utf8'));
+  const listed = parseWitnessConfig(readFileSync(resolve(ROOT, 'witness-list.json'), 'utf8'));
+  const config = noWitness ? { ...listed, enabled: false } : listed;
   const { witness, rest } = createWitness(config, fetcher);
   const { exitCode } = await runSnapshot({ root: archiveDir, day, sources, fetcher, clock: realClock, limit, witness, witnessRest: rest });
   return exitCode;
@@ -70,6 +72,7 @@ export async function main(argv: string[]): Promise<number> {
       day: { type: 'string', default: new Date().toISOString().slice(0, 10) },
       limit: { type: 'string' },
       events: { type: 'string', default: resolve(ROOT, 'events/2026-fund-crisis.csv') },
+      'no-witness': { type: 'boolean', default: false },
     },
   });
   switch (positionals[0]) {
@@ -91,7 +94,7 @@ export async function main(argv: string[]): Promise<number> {
         console.error('--limit must be a positive integer');
         return 2;
       }
-      return snapshot(values.registry as string, values.archive as string, values.day as string, limit);
+      return snapshot(values.registry as string, values.archive as string, values.day as string, limit, values['no-witness'] as boolean);
     }
     default:
       console.error('usage: cli.ts check | validate-archive | snapshot [--archive <dir>] [--day YYYY-MM-DD] [--limit N]');
