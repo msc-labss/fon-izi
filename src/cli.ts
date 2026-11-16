@@ -7,6 +7,7 @@
  *   node --experimental-strip-types src/cli.ts validate-events [--events events/2026-fund-crisis.csv]
  *   node --experimental-strip-types src/cli.ts archive-coverage --fund-list <fon-getirileri.html> [--from 2025-01] [--to 2026-09] [--out docs/history-coverage.csv]
  *   node --experimental-strip-types src/cli.ts backfill --fund-list <fon-getirileri.html> [--archive <dir>] [--from 2025-01] [--to 2026-09] [--codes A,B]
+ *   node --experimental-strip-types src/cli.ts record-coverage [--archive <dir>] [--events <csv> | --codes A,B] [--from 2026-01] [--to 2026-09] --out <csv>
  *
  * `check` validates the source registry; `validate-archive` validates every
  * record line; `snapshot` captures the day's TEFAS figures;
@@ -19,6 +20,8 @@ import { dirname, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { validateArchive } from './archive.ts';
 import { runBackfill } from './backfill.ts';
+import { recordCoverage } from './record-coverage.ts';
+import { parseCsvRecords } from './csv.ts';
 import { archiveCoverage, studyFunds } from './coverage.ts';
 import { toCsv } from './csv.ts';
 import { validateEvents } from './events.ts';
@@ -135,8 +138,17 @@ export async function main(argv: string[]): Promise<number> {
       const { exitCode } = await runBackfill({ root: values.archive as string, codes, from: (values.from as string).replace('-', ''), to: (values.to as string).replace('-', ''), sources, fetcher, clock: realClock });
       return exitCode;
     }
+    case 'record-coverage': {
+      const codes = values.codes ? (values.codes as string).split(',').filter(Boolean) : [...new Set(parseCsvRecords(readFileSync(values.events as string, 'utf8')).records.map((r) => r.fund_code))];
+      const rows = recordCoverage(values.archive as string, codes, values.from as string, values.to as string);
+      const out = values.out as string;
+      mkdirSync(dirname(out), { recursive: true });
+      writeFileSync(out, toCsv(['fund_code', 'field', 'month', 'records'], rows as unknown as Record<string, string>[]));
+      console.log(`${out}: ${rows.length} rows for ${codes.length} funds`);
+      return 0;
+    }
     default:
-      console.error('usage: cli.ts check | validate-archive | validate-events | snapshot | archive-coverage | backfill (see the header of src/cli.ts)');
+      console.error('usage: cli.ts check | validate-archive | validate-events | snapshot | archive-coverage | backfill | record-coverage (see the header of src/cli.ts)');
       return 2;
   }
 }
