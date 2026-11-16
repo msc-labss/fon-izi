@@ -86,7 +86,7 @@ export function coverageRows(fund: Fund, monthList: readonly string[], oldCaps: 
 }
 
 /** CDX queries fail now and then (5xx, rate limits); back off 30, 60 and 120 s before giving up. */
-async function withBackoff<T>(what: string, fn: () => Promise<T>, sleep: (ms: number) => Promise<void>, log: (m: string) => void): Promise<T> {
+export async function withBackoff<T>(what: string, fn: () => Promise<T>, sleep: (ms: number) => Promise<void>, log: (m: string) => void): Promise<T> {
   for (const wait of [30_000, 60_000, 120_000, -1]) {
     try {
       return await fn();

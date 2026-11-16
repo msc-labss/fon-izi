@@ -12,12 +12,19 @@
  * are grouped by capture day into `archive/tefas-backfill/…/<day>.jsonl.gz`.
  * A day file that already exists is left alone and its captures are
  * reported as skipped: the archive is append-only.
+ *
+ * Downloaded captures are kept gzipped in a private cache (`cacheDir`), so
+ * a run that stops can be repeated without fetching again. Capture-index
+ * queries and downloads back off 30, 60 and 120 s on rate limits and 5xx.
  */
-import { existsSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { gunzipSync, gzipSync } from 'node:zlib';
 import { dayPath, writeDay, writeNew } from './archive.ts';
 import { captures, isUsable, OLD_PAGE, rawCaptureUrl } from './cdx.ts';
 import type { Capture } from './cdx.ts';
-import { TOOL_VERSION } from './fetch.ts';
+import { withBackoff } from './coverage.ts';
+import { sha256, TOOL_VERSION } from './fetch.ts';
 import type { Clock, Fetcher } from './fetch.ts';
 import { makeRecord } from './record.ts';
 import { requireSource } from './registry.ts';
@@ -47,12 +54,45 @@ export interface BackfillOptions {
   log?: (message: string) => void;
   /** List captures only from this function (tests). */
   listCaptures?: (code: string) => Promise<Capture[]>;
+  /** Private cache of downloaded captures; none when absent. */
+  cacheDir?: string;
+  /** Back-off sleep (tests pass a no-op). */
+  sleep?: (ms: number) => Promise<void>;
 }
+
+class RetryableHttp extends Error {}
 
 export async function runBackfill(opts: BackfillOptions): Promise<{ exitCode: number; summary: Record<string, unknown> }> {
   const { root, codes, sources, fetcher, clock } = opts;
   const log = opts.log ?? ((m: string) => console.error(m));
-  const list = opts.listCaptures ?? ((code: string) => captures(fetcher, OLD_PAGE(code), opts.from, opts.to));
+  const sleep = opts.sleep ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
+  const query = (code: string) => captures(fetcher, OLD_PAGE(code), opts.from, opts.to);
+  const list = opts.listCaptures ?? ((code: string) => withBackoff(`${code} captures`, () => query(code), sleep, log));
+  const cachePath = (code: string, c: Capture) => (opts.cacheDir ? join(opts.cacheDir, code, `${c.timestamp}.html.gz`) : null);
+  /** The raw capture body: from the cache, or downloaded (with back-off) and cached. */
+  async function body(code: string, c: Capture, url: string): Promise<{ status: number; text: string; hash: string } | { error: string }> {
+    const cached = cachePath(code, c);
+    if (cached && existsSync(cached)) {
+      const bytes = gunzipSync(readFileSync(cached));
+      return { status: 200, text: bytes.toString('utf8'), hash: sha256(bytes) };
+    }
+    try {
+      return await withBackoff(`${code} ${c.timestamp}`, async () => {
+        const res = await fetcher.get(url, { timeoutMs: 120_000 });
+        if (res.kind === 'response' && (res.status === 429 || res.status >= 500)) throw new RetryableHttp(`HTTP ${res.status}`);
+        if (res.kind === 'network-error') throw new RetryableHttp(res.error);
+        if (res.kind !== 'response') return { error: res.kind };
+        if (res.status !== 200) return { error: `HTTP ${res.status}` };
+        if (cached) {
+          mkdirSync(dirname(cached), { recursive: true });
+          writeFileSync(cached, gzipSync(Buffer.from(res.body, 'utf8')));
+        }
+        return { status: res.status, text: res.body, hash: res.sha256 };
+      }, sleep, log);
+    } catch (e) {
+      return { error: (e as Error).message };
+    }
+  }
   const byDay = new Map<string, string[]>();
   const failures: { code: string; capture: string; reason: string }[] = [];
   let usable = 0;
@@ -67,14 +107,14 @@ export async function runBackfill(opts: BackfillOptions): Promise<{ exitCode: nu
       } catch (e) {
         return { exitCode: 1, summary: { error: (e as Error).message } };
       }
-      const res = await fetcher.get(url, { timeoutMs: 120_000 });
-      if (res.kind !== 'response' || res.status !== 200) {
-        failures.push({ code, capture: c.timestamp, reason: res.kind === 'response' ? `HTTP ${res.status}` : res.kind });
+      const res = await body(code, c, url);
+      if ('error' in res) {
+        failures.push({ code, capture: c.timestamp, reason: res.error });
         continue;
       }
       let page;
       try {
-        page = extractLegacyFundPage(res.body, code);
+        page = extractLegacyFundPage(res.text, code);
       } catch (e) {
         if (!(e instanceof ExtractError)) throw e;
         failures.push({ code, capture: c.timestamp, reason: `extract: ${e.message}` });
@@ -86,7 +126,7 @@ export async function runBackfill(opts: BackfillOptions): Promise<{ exitCode: nu
         capturedAt: archiveTime(c.timestamp),
         publishedAt: null,
         httpStatus: res.status,
-        sha256: res.sha256,
+        sha256: res.hash,
         toolVersion: TOOL_VERSION,
         origin: 'backfill' as const,
         witness: { url: captureUrl(c), reason: null },

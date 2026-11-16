@@ -82,3 +82,36 @@ test('archive timestamps and capture URLs', () => {
   assert.throws(() => archiveTime('2025'), /bad archive timestamp/);
   assert.equal(captureUrl(cap('20250818045739')), `https://web.archive.org/web/20250818045739/${ORIGINAL}`);
 });
+
+test('a second run reads captures from the cache and fetches nothing', async () => {
+  const cacheDir = mkdtempSync(join(tmpdir(), 'fon-izi-cache-'));
+  const once = async (minute: number) => {
+    const root = mkdtempSync(join(tmpdir(), 'fon-izi-bf-'));
+    const { clock, fetcher } = setup({ [raw('20250818045739')]: { status: 200, body: page } }, Date.UTC(2026, 10, 16, 12, minute, 0));
+    const r = await runBackfill({ root, codes: ['TLY'], from: '202501', to: '202609', sources, fetcher, clock, log: () => {}, listCaptures: async () => [cap('20250818045739')], cacheDir });
+    return { r, fetcher, root };
+  };
+  const first = await once(0);
+  const second = await once(1);
+  assert.ok(first.fetcher.log.some((e) => e.url === raw('20250818045739')));
+  assert.ok(!second.fetcher.log.some((e) => e.url === raw('20250818045739')));
+  assert.deepEqual(readFileSync(dayPath(first.root, BACKFILL_GROUP, '2025-08-18')), readFileSync(dayPath(second.root, BACKFILL_GROUP, '2025-08-18')));
+});
+
+test('rate limits back off and retry instead of failing the capture', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'fon-izi-bf-'));
+  let calls = 0;
+  let t = Date.UTC(2026, 10, 16, 12, 0, 0);
+  const clock: Clock = { now: () => t, sleep: async (ms) => void (t += ms) };
+  const fetchImpl: FetchLike = async (url) => {
+    if (url.endsWith('/robots.txt')) return { status: 404, headers: new Headers(), arrayBuffer: async () => new ArrayBuffer(0) };
+    calls++;
+    const r = calls <= 2 ? { status: 429, body: '' } : { status: 200, body: page };
+    const bytes = new TextEncoder().encode(r.body);
+    return { status: r.status, headers: new Headers(), arrayBuffer: async () => bytes.buffer };
+  };
+  const fetcher = createFetcher({ fetchImpl, clock, logError: () => {} });
+  const { summary } = await runBackfill({ root, codes: ['TLY'], from: '202501', to: '202609', sources, fetcher, clock, log: () => {}, listCaptures: async () => [cap('20250818045739')], sleep: async () => {} });
+  assert.deepEqual(summary.failures, []);
+  assert.equal(summary.daysWritten, 1);
+});

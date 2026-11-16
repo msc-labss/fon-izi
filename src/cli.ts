@@ -6,7 +6,7 @@
  *   node --experimental-strip-types src/cli.ts snapshot [--archive archive] [--day YYYY-MM-DD] [--limit N] [--no-witness]
  *   node --experimental-strip-types src/cli.ts validate-events [--events events/2026-fund-crisis.csv]
  *   node --experimental-strip-types src/cli.ts archive-coverage --fund-list <fon-getirileri.html> [--from 2025-01] [--to 2026-09] [--out docs/history-coverage.csv]
- *   node --experimental-strip-types src/cli.ts backfill --fund-list <fon-getirileri.html> [--archive <dir>] [--from 2025-01] [--to 2026-09] [--codes A,B]
+ *   node --experimental-strip-types src/cli.ts backfill --fund-list <fon-getirileri.html> [--archive <dir>] [--from 2025-01] [--to 2026-09] [--codes A,B] [--cache <dir>]
  *   node --experimental-strip-types src/cli.ts record-coverage [--archive <dir>] [--events <csv> | --codes A,B] [--from 2026-01] [--to 2026-09] --out <csv>
  *
  * `check` validates the source registry; `validate-archive` validates every
@@ -86,6 +86,7 @@ export async function main(argv: string[]): Promise<number> {
       to: { type: 'string', default: '2026-09' },
       out: { type: 'string', default: resolve(ROOT, 'docs/history-coverage.csv') },
       codes: { type: 'string' },
+      cache: { type: 'string' },
     },
   });
   switch (positionals[0]) {
@@ -135,7 +136,7 @@ export async function main(argv: string[]): Promise<number> {
         return 2;
       }
       const fetcher = createFetcher({ hostIntervalMs: { 'web.archive.org': 2000 } });
-      const { exitCode } = await runBackfill({ root: values.archive as string, codes, from: (values.from as string).replace('-', ''), to: (values.to as string).replace('-', ''), sources, fetcher, clock: realClock });
+      const { exitCode } = await runBackfill({ root: values.archive as string, codes, from: (values.from as string).replace('-', ''), to: (values.to as string).replace('-', ''), sources, fetcher, clock: realClock, cacheDir: values.cache as string | undefined });
       return exitCode;
     }
     case 'record-coverage': {
