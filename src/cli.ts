@@ -25,7 +25,7 @@ import { parseArgs } from 'node:util';
 import { validateArchive } from './archive.ts';
 import { runBackfill } from './backfill.ts';
 import { fileVersions, holdingsRecords, HOLDINGS_GROUP, readAt } from './dump-import.ts';
-import { archiveRecords, HOLDINGS_COLUMNS, holdingsTable } from './tables.ts';
+import { archiveRecords, HOLDINGS_COLUMNS, holdingsTable, ISSUER_COLUMNS, issuerTable } from './tables.ts';
 import { dayPath, writeDay } from './archive.ts';
 import { recordCoverage } from './record-coverage.ts';
 import { parseCsvRecords } from './csv.ts';
@@ -214,7 +214,9 @@ export async function main(argv: string[]): Promise<number> {
       mkdirSync(out, { recursive: true });
       const rows = holdingsTable(archiveRecords(values.archive as string));
       writeFileSync(join(out, 'holdings.csv'), toCsv(HOLDINGS_COLUMNS, rows));
-      console.log(`build-tables: holdings.csv ${rows.length} rows`);
+      const issuers = issuerTable(rows);
+      writeFileSync(join(out, 'issuers.csv'), toCsv(ISSUER_COLUMNS, issuers));
+      console.log(`build-tables: holdings.csv ${rows.length} rows, issuers.csv ${issuers.length} rows`);
       return 0;
     }
     default:

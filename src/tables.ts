@@ -61,3 +61,35 @@ export function holdingsTable(records: Iterable<ArchiveRecord>): Record<string, 
   }
   return rows.sort((a, b) => String(a.fund_code).localeCompare(String(b.fund_code)) || String(a.report_month).localeCompare(String(b.report_month)) || Number(b.weight_percent || 0) - Number(a.weight_percent || 0));
 }
+
+export const ISSUER_COLUMNS = ['bist_code', 'issuer_names', 'isins', 'free_float_shares', 'free_float_source', 'first_available_at', 'report_record_ids'] as const;
+
+/** Why free float is empty: no public point-in-time source (docs/history-spike.md, section 4). */
+export const NO_FREE_FLOAT = 'none: no public point-in-time source before 2026-09-14';
+
+/** One row per BIST code seen in the holdings, with the reports it appears in. */
+export function issuerTable(holdings: readonly Record<string, string | number>[]): Record<string, string>[] {
+  const by = new Map<string, { names: Set<string>; isins: Set<string>; first: string; ids: Set<string> }>();
+  for (const h of holdings) {
+    const code = String(h.bist_code || '');
+    if (!code) continue;
+    const e = by.get(code) ?? { names: new Set<string>(), isins: new Set<string>(), first: String(h.available_at), ids: new Set<string>() };
+    if (h.issuer) e.names.add(String(h.issuer).replace(/\s+/g, ' ').trim());
+    if (h.isin) e.isins.add(String(h.isin));
+    if (String(h.available_at) < e.first) e.first = String(h.available_at);
+    e.ids.add(String(h.report_record_id));
+    by.set(code, e);
+  }
+  return [...by.keys()].sort().map((code) => {
+    const e = by.get(code)!;
+    return {
+      bist_code: code,
+      issuer_names: [...e.names].sort().slice(0, 3).join(' | '),
+      isins: [...e.isins].sort().join(';'),
+      free_float_shares: '',
+      free_float_source: NO_FREE_FLOAT,
+      first_available_at: e.first,
+      report_record_ids: [...e.ids].sort().join(';'),
+    };
+  });
+}

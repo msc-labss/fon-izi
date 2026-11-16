@@ -7,7 +7,7 @@ import { test } from 'node:test';
 import { gzipSync } from 'node:zlib';
 import { validateArchive, writeDay } from '../src/archive.ts';
 import { fileVersions, holdingsRecords, HOLDINGS_GROUP, readAt } from '../src/dump-import.ts';
-import { archiveRecords, holdingsTable } from '../src/tables.ts';
+import { archiveRecords, holdingsTable, issuerTable, NO_FREE_FLOAT } from '../src/tables.ts';
 
 const HEADER = 'fonKodu,raporTarihi,kiymetAdi,kiymetAdiHam,bistKodu,ihracci,isin,tur,nominal,rayicDeger,agirlik,kurucuDuzeni,kaynak,listeTam,satirTuru,veriGunu,raporBasligi';
 const row = (code: string, bist: string, w: number) => `${code},2026-08,Şirket ${bist},Şirket ${bist},${bist},Şirket ${bist} AŞ,TRE${bist}00011,A) HİSSE SENETLERİ,1000.0,${w * 100}.0,${w},standart,kap,true,,,`;
@@ -68,4 +68,19 @@ test('a BIST code missing from an early report is filled from the ISIN, and mark
   assert.equal(tly.bist_code, 'OZATD');
   assert.equal(tly.bist_code_source, 'isin-map');
   assert.equal(rows.find((r) => r.fund_code === 'DOH')!.bist_code_source, 'report');
+});
+
+test('issuer rows carry the record ids of the reports they appear in, and say why free float is empty', () => {
+  const { repo, path } = fakeDump();
+  const root = mkdtempSync(join(tmpdir(), 'fon-izi-arch-'));
+  for (const [day, lines] of holdingsRecords(path, fileVersions(repo, path), readAt(repo, path))) writeDay(root, HOLDINGS_GROUP, day, lines);
+  const ids = new Set([...archiveRecords(root)].map((r) => r.id));
+  const issuers = issuerTable(holdingsTable(archiveRecords(root)));
+  assert.deepEqual(issuers.map((i) => i.bist_code), ['OZATD', 'SKBNK']);
+  for (const i of issuers) {
+    for (const id of i.report_record_ids.split(';')) assert.ok(ids.has(id));
+    assert.equal(i.free_float_shares, '');
+    assert.equal(i.free_float_source, NO_FREE_FLOAT);
+  }
+  assert.equal(issuers[0].report_record_ids.split(';').length, 2); // OZATD held by TLY and DOH
 });
