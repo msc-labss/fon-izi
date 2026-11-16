@@ -71,7 +71,7 @@ test('control rate shown with lead time, in the same row of the report', () => {
   for (const f of r.flags) {
     const row = md.split('\n').find((l) => l.startsWith(`| ${f.flag} |`));
     assert.ok(row, f.flag);
-    assert.match(row!, /\(\S+\) \| \d+ of 1 \| \d+ of 30 \| \d+ \(/);
+    assert.match(row!, /\(\S+\) \| \d+ of 1 \| \d+ \(\S+\) \| \d+ of 30 \| \d+ \(/);
   }
   const ivg = r.flags.find((f) => f.flag === 'investor-growth')!;
   assert.equal(ivg.lead[0].lead, 1);

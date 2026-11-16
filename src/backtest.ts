@@ -99,6 +99,8 @@ export interface BacktestRun {
     lead: { event: string; lead: number; never: number; insufficient: number; medianDays: number | null }[];
     control: ControlShare;
     eventCoverage: number;
+    /** Event funds the flag fired for on at least one grid date (same measure as the controls'). */
+    eventEverTriggered: number;
   }[];
   leadTimes: { code: string; flag: string; event: string; status: string; since: string; days: number | '' }[];
 }
@@ -159,7 +161,8 @@ export function runBacktest(opts: { ix: FundIndex; method: Method; events: reado
       };
     });
     const covered = new Set(rs.filter((r) => r.status === 'ok').map((r) => r.fund_code));
-    return { flag: def.id, lead, control: controlShare(controlResults.get(def.id) ?? []), eventCoverage: covered.size };
+    const fired = new Set(rs.filter((r) => r.status === 'ok' && r.triggered === true).map((r) => r.fund_code));
+    return { flag: def.id, lead, control: controlShare(controlResults.get(def.id) ?? []), eventCoverage: covered.size, eventEverTriggered: fired.size };
   });
   leadTimes.sort((a, b) => (a.flag < b.flag ? -1 : a.flag > b.flag ? 1 : a.event < b.event ? -1 : a.event > b.event ? 1 : a.code < b.code ? -1 : 1));
   return {
@@ -188,16 +191,16 @@ export function reportSection(run: BacktestRun): string {
     `- Event funds: ${run.eventFunds}; control funds: ${run.controlFunds}`,
     `- Events: ${run.events.map((e) => `${e.name} (${e.date})`).join(', ')}`,
     '',
-    'Each row puts a flag\'s lead times for the event funds next to the share of control funds it fired for. Lead: the flag stayed triggered from a grid date until the event. `insufficient-data` is counted apart, never as a miss.',
+    'Each row puts a flag\'s lead times for the event funds next to the share of control funds it fired for. Lead: the flag stayed triggered from a grid date until the event. "Ever fired" uses the same measure for both groups: the flag fired on at least one grid date. `insufficient-data` is counted apart, never as a miss.',
     '',
-    `| Flag | ${run.events.map((e) => `${e.name}: lead / never / no data (median days)`).join(' | ')} | Event funds with data | Control funds with data | Controls it ever fired for | Mean weekly control share |`,
-    `|---|${run.events.map(() => '---').join('|')}|---|---|---|---|`,
+    `| Flag | ${run.events.map((e) => `${e.name}: lead / never / no data (median days)`).join(' | ')} | Event funds with data | Event funds it ever fired for | Control funds with data | Controls it ever fired for | Mean weekly control share |`,
+    `|---|${run.events.map(() => '---').join('|')}|---|---|---|---|---|`,
   ];
   for (const f of run.flags) {
     const weekly = f.control.byDate.filter((d) => d.ok > 0);
     const mean = weekly.length ? weekly.reduce((s, d) => s + d.triggered / d.ok, 0) / weekly.length : null;
     lines.push(
-      `| ${f.flag} | ${f.lead.map((l) => `${l.lead} / ${l.never} / ${l.insufficient} (${l.medianDays ?? '–'})`).join(' | ')} | ${f.eventCoverage} of ${run.eventFunds} | ${f.control.withData} of ${run.controlFunds} | ${f.control.everTriggered} (${pct(f.control.everTriggered, f.control.withData)}) | ${mean === null ? '–' : `${(mean * 100).toFixed(1)}%`} |`,
+      `| ${f.flag} | ${f.lead.map((l) => `${l.lead} / ${l.never} / ${l.insufficient} (${l.medianDays ?? '–'})`).join(' | ')} | ${f.eventCoverage} of ${run.eventFunds} | ${f.eventEverTriggered} (${pct(f.eventEverTriggered, f.eventCoverage)}) | ${f.control.withData} of ${run.controlFunds} | ${f.control.everTriggered} (${pct(f.control.everTriggered, f.control.withData)}) | ${mean === null ? '–' : `${(mean * 100).toFixed(1)}%`} |`,
     );
   }
   return `${lines.join('\n')}\n`;
