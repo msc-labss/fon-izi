@@ -1,0 +1,22 @@
+{
+  "sources": [
+    {
+      "id": "tefas-fund-list",
+      "urlPrefix": "https://www.tefas.gov.tr/tr/fon-getirileri",
+      "cadence": "daily",
+      "fields": ["code", "title", "umbrellaType", "tefasListed", "returns", "riskValue"],
+      "rawPolicy": "hash-only",
+      "termsRef": "docs/sources/terms.md#tefas",
+      "note": "Fund list: payload key initialFundListingData (docs/sources/tefas.md)."
+    },
+    {
+      "id": "tefas-fund-detail",
+      "urlPrefix": "https://www.tefas.gov.tr/tr/fon-detayli-analiz/",
+      "cadence": "daily",
+      "fields": ["code", "title", "category", "unitPrice", "totalValue", "shareCount", "investorCount", "allocation", "riskValue", "isin", "tradingStatus", "kapUrl", "categoryRank", "categorySize", "marketShare", "dailyReturn", "returns"],
+      "rawPolicy": "hash-only",
+      "termsRef": "docs/sources/terms.md#tefas",
+      "note": "One page per fund: profilData, bilgiData, periyodikData, varlikData (docs/sources/tefas.md)."
+    }
+  ]
+}

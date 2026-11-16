@@ -1,0 +1,15 @@
+{
+  "name": "fon-izi",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Point-in-time archive of public Turkish investment fund data, with provenance, for journalists and researchers.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "test": "node --experimental-strip-types --test",
+    "check": "node --experimental-strip-types src/cli.ts check"
+  }
+}
