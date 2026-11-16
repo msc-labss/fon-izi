@@ -144,7 +144,38 @@ written consent. **Without that consent, `days-to-exit` stays
 
 ## 5. Coverage results
 
-Pending the coverage run.
+Run of 16 Nov 2026 (`docs/history-coverage.csv`, 331 funds × 21 months,
+January 2025 to September 2026):
+
+| | Crisis funds (131) | Control sample (200) |
+|---|---|---|
+| Funds with at least one usable capture | 130 | 199 |
+| Usable captures in all | 929 | 1,621 |
+| Median usable captures per fund | 7 | 9 |
+| Funds with a usable capture, Jan 2025–Mar 2026 | 130 | 199 |
+| Funds with a usable capture, Apr–Sep 2026 | 14 | 20 |
+
+**Crisis funds with a usable capture, by month:**
+
+```
+2025: Jan 40, Feb 18, Mar 25, Apr 60, May 23, Jun 52, Jul 26, Aug 106, Sep 33, Oct 21, Nov 82, Dec 82
+2026: Jan 79, Feb 62, Mar 44, Apr 9, May 0, Jun 0, Jul 5, Aug 0, Sep 0
+```
+
+Reading:
+
+- **Coverage ends in March 2026.** After that, archive.org holds rejected
+  or challenge pages; all 8 captures of the new page address are
+  unusable.
+- **The six months before the crisis** (April to September 2026) are
+  covered by the private dump: daily price, investors, size and units from
+  September 2025, and holdings for August and September 2026.
+- **Price history reaches back further:** each old-page capture carries a
+  year of daily prices, so captures from early 2025 reach back to early
+  2024.
+- **The control sample is covered as well as the crisis funds,** slightly
+  better per fund (median 9 against 7). The control flag rate can be
+  computed over the same months.
 
 ## 6. Decisions (16 Nov 2026)
 
