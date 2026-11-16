@@ -17,6 +17,15 @@
       "rawPolicy": "hash-only",
       "termsRef": "docs/sources/terms.md#tefas",
       "note": "One page per fund: profilData, bilgiData, periyodikData, varlikData (docs/sources/tefas.md)."
+    },
+    {
+      "id": "spk-bulletin",
+      "urlPrefix": "https://spk.gov.tr/data/",
+      "cadence": "weekly",
+      "fields": ["bulletinNumber", "publishedOn", "page"],
+      "rawPolicy": "hash-only",
+      "termsRef": "docs/sources/terms.md#spk",
+      "note": "SPK bulletin PDFs, cited by the event sets (events/README.md); not captured by the snapshot."
     }
   ]
 }

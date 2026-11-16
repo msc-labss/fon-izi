@@ -13,7 +13,7 @@ A source stays `hash-only` until its terms clearly allow republishing.
 |---|---|---|---|
 | TEFAS | pages allowed, `/api/` disallowed | none published; site disclaimer only | `hash-only` |
 | KAP | unreadable (HTTP 666 block page, twice) | none for data reuse found | not captured yet |
-| SPK | none (404) | none found | not captured yet |
+| SPK | none (404) | none found | `hash-only` (bulletins cited, not captured) |
 | Internet Archive | none on web.archive.org (404) | terms page needs JavaScript; not read | witness off |
 
 ## TEFAS
@@ -62,9 +62,10 @@ A source stays `hash-only` until its terms clearly allow republishing.
 - **Operator:** the Capital Markets Board, at https://spk.gov.tr.
 - **robots.txt:** none; the request returns SPK's 404 page.
 - **Terms:** no terms-of-use page found.
-- **Policy:** not in `sources.json` yet. Weekly bulletins are added when
-  the crisis fund list is transcribed (task 1.8), as `hash-only` unless a
-  legal check clears republishing official bulletins.
+- **Policy:** `hash-only` (`spk-bulletin` in `sources.json`). The event
+  sets cite bulletin PDFs by URL, page and SHA-256 (`events/README.md`) and
+  do not republish them. Republishing official bulletins waits for a legal
+  check.
 
 ## Internet Archive (witness)
 

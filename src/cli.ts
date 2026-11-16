@@ -4,15 +4,18 @@
  *   node --experimental-strip-types src/cli.ts check [--registry sources.json]
  *   node --experimental-strip-types src/cli.ts validate-archive [--archive archive]
  *   node --experimental-strip-types src/cli.ts snapshot [--archive archive] [--day YYYY-MM-DD] [--limit N]
+ *   node --experimental-strip-types src/cli.ts validate-events [--events events/2026-fund-crisis.csv]
  *
  * `check` validates the source registry; `validate-archive` validates every
- * record line; `snapshot` captures the day's TEFAS figures. Each exits 1
- * naming the problem. `--limit` is for local trials only.
+ * record line; `snapshot` captures the day's TEFAS figures;
+ * `validate-events` checks that every event row cites an official source.
+ * Each exits 1 naming the problem. `--limit` is for local trials only.
  */
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { validateArchive } from './archive.ts';
+import { validateEvents } from './events.ts';
 import { createFetcher, realClock } from './fetch.ts';
 import { validateRegistry } from './registry.ts';
 import type { Source } from './registry.ts';
@@ -62,6 +65,7 @@ export async function main(argv: string[]): Promise<number> {
       archive: { type: 'string', default: resolve(ROOT, 'archive') },
       day: { type: 'string', default: new Date().toISOString().slice(0, 10) },
       limit: { type: 'string' },
+      events: { type: 'string', default: resolve(ROOT, 'events/2026-fund-crisis.csv') },
     },
   });
   switch (positionals[0]) {
@@ -69,6 +73,14 @@ export async function main(argv: string[]): Promise<number> {
       return check(values.registry as string);
     case 'validate-archive':
       return validate(values.archive as string);
+    case 'validate-events': {
+      const file = values.events as string;
+      const { rows, errors } = validateEvents(readFileSync(file, 'utf8'));
+      for (const e of errors) console.error(`${file}: ${e}`);
+      if (errors.length) return 1;
+      console.log(`${file}: ${rows} rows valid`);
+      return 0;
+    }
     case 'snapshot': {
       const limit = values.limit === undefined ? undefined : Number(values.limit);
       if (limit !== undefined && !(Number.isInteger(limit) && limit > 0)) {
