@@ -1,0 +1,27 @@
+{
+  "note": "Evaluative words kept out of Fon İzi's texts (spec fund-dataset-release, 'Descriptive wording'). Matched on Turkish-folded text at word boundaries; a 'stem' entry also matches longer words. A term may appear only inside a quotation followed by an official citation, e.g. \"…\" [SPK Bülten 2026/65, s. 2].",
+  "terms": [
+    { "text": "fraud", "stem": true },
+    { "text": "ponzi", "stem": true },
+    { "text": "scam", "stem": true },
+    { "text": "swindl", "stem": true },
+    { "text": "manipulat", "stem": true },
+    { "text": "pump and dump" },
+    { "text": "pump-and-dump" },
+    { "text": "risky" },
+    { "text": "riskier" },
+    { "text": "safe" },
+    { "text": "unsafe" },
+    { "text": "crook", "stem": true },
+    { "text": "dolandirici", "stem": true },
+    { "text": "saadet zinciri" },
+    { "text": "manipule", "stem": true },
+    { "text": "manipulasyon", "stem": true },
+    { "text": "riskli" },
+    { "text": "guvenli" },
+    { "text": "guvensiz" },
+    { "text": "vurgun", "stem": true },
+    { "text": "hileli" },
+    { "text": "sahtekar", "stem": true }
+  ]
+}

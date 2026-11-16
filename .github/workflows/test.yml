@@ -39,3 +39,4 @@ jobs:
           node --experimental-strip-types src/cli.ts validate-events
           node --experimental-strip-types src/cli.ts validate-timeline
           node --experimental-strip-types src/cli.ts validate-method
+          node --experimental-strip-types src/cli.ts check-wording

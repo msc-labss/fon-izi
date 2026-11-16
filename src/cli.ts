@@ -14,6 +14,7 @@
  *   node --experimental-strip-types src/cli.ts build-tables --archive <dir> --tables <dir>
  *   node --experimental-strip-types src/cli.ts flags --archive <dir> --day YYYY-MM-DD [--codes A,B | --events <csv>] --out <csv>
  *   node --experimental-strip-types src/cli.ts validate-method [--method METHOD.md]
+ *   node --experimental-strip-types src/cli.ts check-wording [files…]   (default: the repository's release texts)
  *   node --experimental-strip-types src/cli.ts backtest --archive <dir> --fund-list <fon-getirileri.html> --reports <dir> [--events <csv>]
  *   node --experimental-strip-types src/cli.ts record-coverage [--archive <dir>] [--events <csv> | --codes A,B] [--from 2026-01] [--to 2026-09] --out <csv>
  *
@@ -24,7 +25,7 @@
  * local trials only.
  */
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
+import { dirname, join, relative, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { validateArchive } from './archive.ts';
 import { runBackfill } from './backfill.ts';
@@ -34,6 +35,7 @@ import { checkFrozen, parseMethod } from './method.ts';
 import { reportSection, runBacktest } from './backtest.ts';
 import { sha256 } from './fetch.ts';
 import { extractFundList } from './tefas.ts';
+import { checkWording } from './wording.ts';
 import { archiveRecords, HOLDINGS_COLUMNS, holdingsTable, ISSUER_COLUMNS, issuerTable } from './tables.ts';
 import { dayPath, writeDay } from './archive.ts';
 import { recordCoverage } from './record-coverage.ts';
@@ -48,6 +50,12 @@ import { runSnapshot } from './snapshot.ts';
 import { createWitness, parseWitnessConfig } from './witness.ts';
 
 const ROOT = resolve(dirname(new URL(import.meta.url).pathname), '..');
+
+/** The texts a release carries (spec: README, method, schema documents, case file). */
+function releaseTexts(): string[] {
+  const dirTexts = (d: string, ext: RegExp) => (existsSync(join(ROOT, d)) ? readdirSync(join(ROOT, d)).filter((f) => ext.test(f)).map((f) => `${d}/${f}`) : []);
+  return ['README.md', 'METHOD.md', 'docs/schema.md', 'events/README.md', ...dirTexts('docs/sources', /\.md$/), 'docs/history-spike.md', ...dirTexts('case-file', /\.(md|tmpl)$/)].filter((f) => existsSync(join(ROOT, f)));
+}
 
 function loadRegistry(registryPath: string): { sources: Source[]; errors: string[] } {
   try {
@@ -240,6 +248,15 @@ export async function main(argv: string[]): Promise<number> {
         written += lines.length;
       }
       console.log(`import-dump-daily: ${written} daily records written, ${skipped} capture days skipped (already present)`);
+      return 0;
+    }
+    case 'check-wording': {
+      const terms = JSON.parse(readFileSync(resolve(ROOT, 'wording.json'), 'utf8')).terms;
+      const files = positionals.length > 1 ? positionals.slice(1) : releaseTexts();
+      const errors = files.flatMap((f) => checkWording(relative(ROOT, resolve(f)), readFileSync(resolve(ROOT, f), 'utf8'), terms));
+      for (const e of errors) console.error(e);
+      if (errors.length) return 1;
+      console.log(`check-wording: ${files.length} files clean`);
       return 0;
     }
     case 'validate-method': {
