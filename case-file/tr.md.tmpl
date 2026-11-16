@@ -1,0 +1,62 @@
+# Fon tasfiyeleri: kamuya açık veriler önceden ne gösteriyordu?
+
+*Fon İzi vaka dosyası · yöntem v0 · taslak, henüz yayımlanmadı*
+
+## Ne oldu
+
+Sermaye Piyasası Kurulu (SPK), {{fig:date.liquidation}} tarihinde {{fig:managers}} portföy yönetim şirketinin bütün fonlarını TEFAS'ta alım ve satıma kapattı ve bunlardan {{fig:funds.liquidated}} fonun tasfiyesine karar verdi [SPK Bülten 2026/60, s. 1] [SPK Bülten 2026/61, s. 1]. SPK, {{fig:date.guideline}} tarihinde Yatırım Fonlarına İlişkin Rehber'i değiştirmiş, yoğunlaşma ve fiili dolaşım oranı düşük paylara ilişkin sınırlar getirmişti [SPK Bülten 2026/54, s. 1].
+
+Fon İzi'nin zaman çizelgesi (`events/2026-timeline.csv`), Şubat 2025 ile Kasım 2026 arasında bu şirketler ve fonları hakkında {{fig:timeline.rows}} SPK kararını listeliyor; bunların {{fig:timeline.trading_bans}} tanesi belirli paylarla sınırlı işlem yasaklarıdır. Her satır bülten ve sayfa numarasını gösterir.
+
+Bu dosya tek bir soruyu yanıtlıyor: **Tasfiyeden önce kamuya açık veriler bu fonlar hakkında ne gösteriyordu ve aynı işaretler başka fonlarda ne sıklıkla görülüyordu?**
+
+## Ne ölçüldü
+
+Fon İzi, kamuya açık fon verilerini yayımlandıkları anla birlikte saklayan bir arşivdir: TEFAS fon sayfaları, eski TEFAS sayfalarının Internet Archive kopyaları, günlük TEFAS verilerini ve aylık portföy dağılımlarını içeren kamuya açık bir veri seti ve SPK bültenleri. Her kayıt kaynağını, alınma zamanını ve içerik özetini taşır.
+
+Yöntem (`METHOD.md`, sürüm v0, geriye dönük testten önce donduruldu) betimleyici göstergeler tanımlar. Bunların dördü neredeyse her fon için ölçülebildi:
+
+- **return-vs-peers**: Fonun {{fig:method.return-vs-peers.window_days}} günlük getirisi bütün TEFAS fonları arasında {{fig:method.return-vs-peers.threshold}}. yüzdelik dilimde ya da üstünde.
+- **investor-growth**: En az {{fig:method.investor-growth.min_investors}} yatırımcılı bir fonda yatırımcı sayısı {{fig:method.investor-growth.window_days}} günde en az {{fig:method.investor-growth.threshold}} katına çıkmış.
+- **net-inflow**: {{fig:method.net-inflow.window_days}} günde fon büyüklüğü, fonun kendi getirisinin ötesinde, başlangıç değerinin en az {{fig:method.net-inflow.threshold}} katı kadar artmış.
+- **repo-borrowing**: Fonun varlık dağılımında repo yoluyla borçlanma, fon değerinin yüzde {{fig:method.repo-borrowing.threshold}} oranını aşmış.
+
+Her gösterge {{fig:backtest.grid_from}} ile {{fig:backtest.grid_to}} arasındaki her cuma ({{fig:backtest.grid_dates}} tarih), yalnızca o tarihte kamuya açık olan verilerle değerlendirildi. Aynı göstergeler, aynı fon türlerinden {{fig:backtest.controls}} başka fon için de değerlendirildi: karşılaştırma grubu.
+
+**Eşikler sonradan bilinenlerle belirlendi.** Eşikleri seçenler tasfiyeleri biliyordu. Buna karşı güvence karşılaştırma grubudur: başka fonlarda da aynı sıklıkla görülen bir gösterge az şey söyler.
+
+## Sonuçlar
+
+| Gösterge | En az bir kez görüldüğü tasfiye edilen fonlar | En az bir kez görüldüğü diğer fonlar | Kaç kat sık | Verisi olan tasfiye edilen fonlar | Verisi olan diğer fonlar |
+|---|---|---|---|---|---|
+| return-vs-peers | {{fig:flag.return-vs-peers.event_ever}} | {{fig:flag.return-vs-peers.control_ever}} | {{fig:flag.return-vs-peers.ratio}} | {{fig:flag.return-vs-peers.event_with_data}} | {{fig:flag.return-vs-peers.control_with_data}} |
+| investor-growth | {{fig:flag.investor-growth.event_ever}} | {{fig:flag.investor-growth.control_ever}} | {{fig:flag.investor-growth.ratio}} | {{fig:flag.investor-growth.event_with_data}} | {{fig:flag.investor-growth.control_with_data}} |
+| repo-borrowing | {{fig:flag.repo-borrowing.event_ever}} | {{fig:flag.repo-borrowing.control_ever}} | {{fig:flag.repo-borrowing.ratio}} | {{fig:flag.repo-borrowing.event_with_data}} | {{fig:flag.repo-borrowing.control_with_data}} |
+| net-inflow | {{fig:flag.net-inflow.event_ever}} | {{fig:flag.net-inflow.control_ever}} | {{fig:flag.net-inflow.ratio}} | {{fig:flag.net-inflow.event_with_data}} | {{fig:flag.net-inflow.control_with_data}} |
+
+- **En belirgin ayrım olağan dışı getiride:** gösterge tasfiye edilen fonların {{fig:flag.return-vs-peers.event_ever}} kadarında, diğer fonların {{fig:flag.return-vs-peers.control_ever}} kadarında görüldü.
+- **Yatırımcı artışı ve repo borçlanması da ayrışıyor;** sırasıyla yaklaşık {{fig:flag.investor-growth.ratio}} ve {{fig:flag.repo-borrowing.ratio}} kat daha sık görüldü.
+- **Net giriş diğer fonların da büyük bir bölümünde görüldü** ({{fig:flag.net-inflow.control_ever}}); tek başına az şey söyler.
+- **Tasfiye edilen fonların çoğunda bu işaretlerin hiçbiri yok.** Tasfiye, yedi şirketin para piyasası fonları dahil bütün fonlarını kapsadı.
+
+## Ne kadar önce
+
+Bir gösterge, tasfiyeye kadar her cuma kesintisiz tetiklenmiş kaldıysa "önceden görülmüş" sayıldı. Verinin olmadığı ya da eşiğin altında kalınan tek bir hafta bu seriyi bozar; bu yüzden aşağıdaki süreler temkinlidir.
+
+- {{fig:leads.any_measured}} tasfiye edilen fonda dört göstergeden en az biri {{fig:date.liquidation}} tarihine kadar kesintisiz sürdü.
+- En uzunu: `PDG` fonunun getiri göstergesi {{fig:longest.since}} tarihinden, yani {{fig:longest.days}} gün önceden beri.
+- `TLY`: repo borçlanması {{fig:tly.repo.since}} tarihinden ({{fig:tly.repo.days}} gün önce), getiri göstergesi {{fig:tly.rvp.since}} tarihinden ({{fig:tly.rvp.days}} gün önce) beri.
+- Göstergelere göre ortanca süreler: return-vs-peers {{fig:flag.return-vs-peers.median_liq}} gün, investor-growth {{fig:flag.investor-growth.median_liq}}, repo-borrowing {{fig:flag.repo-borrowing.median_liq}}, net-inflow {{fig:flag.net-inflow.median_liq}}.
+
+## Bağlam ve sınırlar
+
+- **Portföy dağılımı ve fon türü burada pek ayrışmıyor.** manager-cluster, verisi olan tasfiye edilen fonların {{fig:flag.manager-cluster.event_ever}} kadarında, diğer fonların {{fig:flag.manager-cluster.control_ever}} kadarında görüldü; ancak portföy dağılımı yalnızca {{fig:flag.manager-cluster.event_with_data}} tasfiye edilen fon için ve yalnızca Ağustos ve Eylül 2026 için vardı. reach-vs-type (çok yatırımcılı nitelikli yatırımcı fonu) {{fig:flag.reach-vs-type.event_ever}} karşısında {{fig:flag.reach-vs-type.control_ever}} oranında görüldü.
+- **İki gösterge ölçülemedi.** Eylül 2026'dan önce zamana bağlı kamuya açık bir fiili dolaşım serisi yok; Borsa İstanbul'un kullanım koşulları günlük işlem hacminin yeniden kullanılmasına izin vermiyor. free-float-share ve days-to-exit "işaret yok" olarak değil, "veri yetersiz" olarak raporlanır.
+- **Kapsam.** TEFAS sayfalarının Internet Archive kopyaları Mart 2026'da bitiyor; Nisan–Eylül 2026 verisi, eski satırları TEFAS'tan sonradan toplanmış kamuya açık veri setinden geliyor.
+- **Yalnızca betimleyici.** Bu göstergeler ölçülen büyüklükleri belirtilen eşiklerle karşılaştırır. Niyet ya da davranış hakkında bir şey söylemez ve yatırım tavsiyesi değildir.
+
+## Kaynaklar ve teşekkür
+
+- TEFAS (Takasbank) fon sayfaları; SPK haftalık bültenleri; Internet Archive.
+- Günlük TEFAS verileri ve aylık portföy dağılımları: kamuya açık veri seti [sercannnnn/fon-analiz-veri](https://github.com/sercannnnn/fon-analiz-veri), çözümleme için kullanıldı; satırları yeniden yayımlanmaz.
+- Yöntem, veri tabloları, şemalar ve kod: [github.com/msc-labss/fon-izi](https://github.com/msc-labss/fon-izi). MSC Labs tarafından sürdürülür.

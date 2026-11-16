@@ -15,6 +15,8 @@
  *   node --experimental-strip-types src/cli.ts flags --archive <dir> --day YYYY-MM-DD [--codes A,B | --events <csv>] --out <csv>
  *   node --experimental-strip-types src/cli.ts validate-method [--method METHOD.md]
  *   node --experimental-strip-types src/cli.ts check-wording [files…]   (default: the repository's release texts)
+ *   node --experimental-strip-types src/cli.ts build-figures --reports <dir> --out <figures.json>
+ *   node --experimental-strip-types src/cli.ts render-case-file --figures <figures.json> --out <dir>
  *   node --experimental-strip-types src/cli.ts backtest --archive <dir> --fund-list <fon-getirileri.html> --reports <dir> [--events <csv>]
  *   node --experimental-strip-types src/cli.ts record-coverage [--archive <dir>] [--events <csv> | --codes A,B] [--from 2026-01] [--to 2026-09] --out <csv>
  *
@@ -36,6 +38,8 @@ import { reportSection, runBacktest } from './backtest.ts';
 import { sha256 } from './fetch.ts';
 import { extractFundList } from './tefas.ts';
 import { checkWording } from './wording.ts';
+import { buildFigures } from './case-figures.ts';
+import { handTypedNumbers, render } from './figures.ts';
 import { archiveRecords, HOLDINGS_COLUMNS, holdingsTable, ISSUER_COLUMNS, issuerTable } from './tables.ts';
 import { dayPath, writeDay } from './archive.ts';
 import { recordCoverage } from './record-coverage.ts';
@@ -108,6 +112,7 @@ export async function main(argv: string[]): Promise<number> {
       'no-witness': { type: 'boolean', default: false },
       method: { type: 'string', default: resolve(ROOT, 'METHOD.md') },
       reports: { type: 'string' },
+      figures: { type: 'string' },
       'fund-list': { type: 'string' },
       from: { type: 'string', default: '2025-01' },
       to: { type: 'string', default: '2026-09' },
@@ -248,6 +253,52 @@ export async function main(argv: string[]): Promise<number> {
         written += lines.length;
       }
       console.log(`import-dump-daily: ${written} daily records written, ${skipped} capture days skipped (already present)`);
+      return 0;
+    }
+    case 'build-figures': {
+      const dir = values.reports as string | undefined;
+      if (!dir || !values.out) {
+        console.error('--reports <dir> and --out <figures.json> are required');
+        return 2;
+      }
+      const latest = (re: RegExp) => readdirSync(dir).filter((f) => re.test(f)).sort().at(-1);
+      const runFile = latest(/^backtest-.*Z\.json$/);
+      const leadFile = latest(/^backtest-.*Z-leadtimes\.csv$/);
+      if (!runFile || !leadFile) {
+        console.error(`${dir}: no backtest run`);
+        return 1;
+      }
+      const figures = buildFigures({
+        run: JSON.parse(readFileSync(join(dir, runFile), 'utf8')),
+        runFile: `reports/${runFile}`,
+        leadTimes: parseCsvRecords(readFileSync(join(dir, leadFile), 'utf8')).records as never,
+        leadTimesFile: `reports/${leadFile}`,
+        eventSet: parseCsvRecords(readFileSync(values.events as string, 'utf8')).records as never,
+        timeline: parseCsvRecords(readFileSync(values.timeline as string, 'utf8')).records as never,
+        method: parseMethod(readFileSync(values.method as string, 'utf8')),
+      });
+      mkdirSync(dirname(values.out as string), { recursive: true });
+      writeFileSync(values.out as string, `${JSON.stringify(figures, null, 2)}\n`);
+      console.log(`build-figures: ${Object.keys(figures).length} figures from ${runFile}`);
+      return 0;
+    }
+    case 'render-case-file': {
+      const figures = JSON.parse(readFileSync(values.figures as string, 'utf8'));
+      const terms = JSON.parse(readFileSync(resolve(ROOT, 'wording.json'), 'utf8')).terms;
+      const out = values.out as string;
+      mkdirSync(out, { recursive: true });
+      const errors: string[] = [];
+      for (const lang of ['en', 'tr'] as const) {
+        const tmplPath = `case-file/${lang}.md.tmpl`;
+        const tmpl = readFileSync(join(ROOT, tmplPath), 'utf8');
+        errors.push(...handTypedNumbers(tmplPath, tmpl), ...checkWording(tmplPath, tmpl, terms));
+        const text = render(tmpl, figures, lang);
+        errors.push(...checkWording(`${lang}.md`, text, terms));
+        writeFileSync(join(out, `${lang}.md`), text);
+      }
+      for (const e of errors) console.error(e);
+      if (errors.length) return 1;
+      console.log(`render-case-file: en.md and tr.md written to ${out}; numbers and wording checked`);
       return 0;
     }
     case 'check-wording': {

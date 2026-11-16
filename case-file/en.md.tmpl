@@ -1,0 +1,62 @@
+# The September 2026 fund liquidations: what public data showed before
+
+*Fon İzi case file · method v0 · draft, not yet published*
+
+## What happened
+
+On {{fig:date.liquidation}} the Capital Markets Board (SPK) closed every fund of {{fig:managers}} portfolio managers to buying and selling on TEFAS and ordered {{fig:funds.liquidated}} of them liquidated [SPK Bulletin 2026/60, p. 1] [SPK Bulletin 2026/61, p. 1]. On {{fig:date.guideline}} SPK had amended its investment fund guideline, including limits on concentration and on holdings of low-free-float shares [SPK Bulletin 2026/54, p. 1].
+
+Fon İzi's timeline (`events/2026-timeline.csv`) lists {{fig:timeline.rows}} SPK decisions on these managers and their funds from February 2025 to November 2026, among them {{fig:timeline.trading_bans}} trading bans tied to specific shares. Every row cites the bulletin and page.
+
+This case file asks one question: **what did public data show about these funds before the liquidation, and how often did the same signals appear for other funds?**
+
+## What was measured
+
+Fon İzi keeps a point-in-time archive of public fund data: TEFAS fund pages, Internet Archive copies of the old TEFAS pages, a public dataset of daily TEFAS figures and monthly holdings, and SPK bulletins. Every record carries its source, capture time and a content hash.
+
+The method (`METHOD.md`, version v0, frozen before the backtest) defines descriptive flags. Four of them could be measured for nearly every fund:
+
+- **return-vs-peers**: the fund's return over {{fig:method.return-vs-peers.window_days}} days was at or above the {{fig:method.return-vs-peers.threshold}}th percentile of all TEFAS funds.
+- **investor-growth**: the number of investors grew at least {{fig:method.investor-growth.threshold}}-fold in {{fig:method.investor-growth.window_days}} days, in a fund with at least {{fig:method.investor-growth.min_investors}} investors.
+- **net-inflow**: over {{fig:method.net-inflow.window_days}} days the fund's value grew, beyond its own return, by at least {{fig:method.net-inflow.threshold}} times its starting value.
+- **repo-borrowing**: the fund's asset allocation showed repo borrowing beyond {{fig:method.repo-borrowing.threshold}} percent of its value.
+
+Each flag was evaluated every Friday from {{fig:backtest.grid_from}} to {{fig:backtest.grid_to}} ({{fig:backtest.grid_dates}} dates), using only data that was public on that date. The same flags were evaluated for {{fig:backtest.controls}} other funds of the same fund types, the control group.
+
+**The thresholds were set with hindsight.** The people who chose them knew about the liquidations. The control group is the safeguard: a flag that fires as often for other funds tells little.
+
+## Results
+
+| Flag | Liquidated funds it fired for at least once | Other funds it fired for at least once | Times as often | Liquidated funds with data | Other funds with data |
+|---|---|---|---|---|---|
+| return-vs-peers | {{fig:flag.return-vs-peers.event_ever}} | {{fig:flag.return-vs-peers.control_ever}} | {{fig:flag.return-vs-peers.ratio}} | {{fig:flag.return-vs-peers.event_with_data}} | {{fig:flag.return-vs-peers.control_with_data}} |
+| investor-growth | {{fig:flag.investor-growth.event_ever}} | {{fig:flag.investor-growth.control_ever}} | {{fig:flag.investor-growth.ratio}} | {{fig:flag.investor-growth.event_with_data}} | {{fig:flag.investor-growth.control_with_data}} |
+| repo-borrowing | {{fig:flag.repo-borrowing.event_ever}} | {{fig:flag.repo-borrowing.control_ever}} | {{fig:flag.repo-borrowing.ratio}} | {{fig:flag.repo-borrowing.event_with_data}} | {{fig:flag.repo-borrowing.control_with_data}} |
+| net-inflow | {{fig:flag.net-inflow.event_ever}} | {{fig:flag.net-inflow.control_ever}} | {{fig:flag.net-inflow.ratio}} | {{fig:flag.net-inflow.event_with_data}} | {{fig:flag.net-inflow.control_with_data}} |
+
+- **Unusual returns separated most clearly:** the flag fired for {{fig:flag.return-vs-peers.event_ever}} of the liquidated funds and {{fig:flag.return-vs-peers.control_ever}} of the other funds.
+- **Investor growth and repo borrowing also separated:** investor growth fired {{fig:flag.investor-growth.ratio}} times as often for liquidated funds, repo borrowing {{fig:flag.repo-borrowing.ratio}} times.
+- **Net inflow fired for a large share of other funds as well** ({{fig:flag.net-inflow.control_ever}}); on its own it says little.
+- **Many liquidated funds show none of these signals.** The liquidation took in every fund of the seven managers, including money market funds.
+
+## How early
+
+A flag has a lead when it stayed triggered every Friday, without a break, until the liquidation. A single week without data or below the threshold ends the streak, so leads here are conservative.
+
+- {{fig:leads.any_measured}} liquidated funds had at least one of the four flags held into {{fig:date.liquidation}}.
+- The longest: `PDG`'s return flag, held from {{fig:longest.since}}, {{fig:longest.days}} days before.
+- `TLY`: repo borrowing held from {{fig:tly.repo.since}} ({{fig:tly.repo.days}} days before) and the return flag from {{fig:tly.rvp.since}} ({{fig:tly.rvp.days}} days before).
+- Median leads by flag: return-vs-peers {{fig:flag.return-vs-peers.median_liq}} days, investor-growth {{fig:flag.investor-growth.median_liq}}, repo-borrowing {{fig:flag.repo-borrowing.median_liq}}, net-inflow {{fig:flag.net-inflow.median_liq}}.
+
+## Context and limits
+
+- **Holdings and fund type barely separate here.** manager-cluster fired for {{fig:flag.manager-cluster.event_ever}} of the liquidated funds with data and {{fig:flag.manager-cluster.control_ever}} of other funds, but holdings were available for only {{fig:flag.manager-cluster.event_with_data}} liquidated funds and only for August and September 2026. reach-vs-type (a qualified-investor fund with many investors) fired for {{fig:flag.reach-vs-type.event_ever}} against {{fig:flag.reach-vs-type.control_ever}}.
+- **Two flags could not be measured.** No public point-in-time free-float series exists before September 2026, and Borsa İstanbul's terms do not allow reusing daily volume. free-float-share and days-to-exit are reported as insufficient data, not as "no signal".
+- **Coverage.** Internet Archive copies of TEFAS pages end in March 2026; April to September 2026 comes from the public dataset, whose earlier rows were collected after the fact from TEFAS.
+- **Descriptive only.** These flags describe measured quantities against stated thresholds. They say nothing about intent or conduct and are not investment advice.
+
+## Sources and credits
+
+- TEFAS (Takasbank) fund pages; SPK weekly bulletins; Internet Archive.
+- Daily TEFAS figures and monthly holdings: the public dataset [sercannnnn/fon-analiz-veri](https://github.com/sercannnnn/fon-analiz-veri), used for analysis; its rows are not republished.
+- Method, data tables, schemas and code: [github.com/msc-labss/fon-izi](https://github.com/msc-labss/fon-izi). Maintained by MSC Labs.
