@@ -1,0 +1,169 @@
+<!DOCTYPE html><html lang="tr"><head><meta charset="utf-8"></head><body>
+<div class="main-indicators">
+                    
+                            <h2>
+                                <span id="MainContent_FormViewMainIndicators_LabelFund">TERA PORTFÖY BİRİNCİ SERBEST FON</span></h2>
+                            <ul class="top-list">
+                                <li>Son Fiyat (TL)<br />
+                                    <br />
+                                    <span>0</span>
+                                </li>
+                                <li>Günlük Getiri (%)<br />
+                                    <br />
+                                    <span>%-100</span>
+                                </li>
+                                <li>Pay (Adet)<br />
+                                    <br />
+                                    <span></span>
+                                </li>
+                                <li>Fon Toplam Değer (TL)<br />
+                                    <br />
+                                    <span></span>
+                                </li>
+                                <li>Kategorisi<br />
+                                    <br />
+                                    <span style="max-width: 350px;">Serbest Fon</span>
+                                </li>
+                            </ul>
+                            <ul>
+                                <li title="Fonun kendi tipi içerisindeki fonlar dahilinde bir yıl önceki iş günü getiri sıralamasıdır. ">Son Bir Yıllık Kategori Derecesi<br />
+                                    <br />
+                                    <span>954 / 1288</span>
+                                </li>
+                                <li>Yatırımcı Sayısı (Kişi)<br />
+                                    <br />
+                                    <span>11.121</span>
+                                </li>
+                                <li title="Fon Toplam Değeri / İlgili Türdeki Fonların Toplam Fon Toplam Değeri">Pazar Payı<br />
+                                    <br />
+                                    <span>%0</span>
+                                </li>
+                            </ul>
+                        
+                </div>
+                <div class="price-indicators">
+
+                    
+                            <ul>
+                                
+                            <li>Son 1 Ay Getirisi<br />
+                                <span style="font-size: 24px;">%0</span></li>
+                            <li>Son 3 Ay Getirisi<br />
+                                <span style="font-size: 24px;">%0</span></li>
+                            <li>Son 6 Ay Getirisi<br />
+                                <span style="font-size: 24px;">%0</span></li>
+                            <li>Son 1 Yıl Getirisi<br />
+                                <span style="font-size: 24px;">%0</span></li>
+                        
+                            </ul>
+<table cellspacing="0" rules="all" border="1" id="MainContent_DetailsViewFund" style="border-collapse:collapse;">
+				<tr class="fund-profile-row">
+					<td class="fund-profile-header">Kodu</td><td class="fund-profile-item">TLY</td>
+				</tr><tr class="fund-profile-alternate">
+					<td class="fund-profile-header">ISIN Kodu</td><td class="fund-profile-item">TRYTRPY00025</td>
+				</tr><tr class="fund-profile-row">
+					<td class="fund-profile-header">Platform İşlem Durumu</td><td class="fund-profile-item">TEFAS&#39;ta işlem görüyor</td>
+				</tr><tr class="fund-profile-alternate">
+					<td class="fund-profile-header">İşlem Başlangıç Saati</td><td class="fund-profile-item">09:00</td>
+				</tr><tr class="fund-profile-row">
+					<td class="fund-profile-header">Son İşlem Saati</td><td class="fund-profile-item">17:45</td>
+				</tr><tr class="fund-profile-alternate">
+					<td class="fund-profile-header">Fon Alış Valörü</td><td class="fund-profile-item">1</td>
+				</tr><tr class="fund-profile-row">
+					<td class="fund-profile-header">Fon Satış Valörü</td><td class="fund-profile-item">2</td>
+				</tr><tr class="fund-profile-alternate">
+					<td class="fund-profile-header">Min. Alış İşlem Miktarı </td><td class="fund-profile-item">1</td>
+				</tr><tr class="fund-profile-row">
+					<td class="fund-profile-header">Min. Satış İşlem Miktarı </td><td class="fund-profile-item">1</td>
+				</tr><tr class="fund-profile-alternate">
+					<td class="fund-profile-header">Max. Alış İşlem Miktarı </td><td class="fund-profile-item">999.999.999</td>
+				</tr><tr class="fund-profile-row">
+					<td class="fund-profile-header">Max. Satış İşlem Miktarı </td><td class="fund-profile-item">999.999.999</td>
+				</tr><tr class="fund-profile-alternate">
+					<td class="fund-profile-header">Giriş Komisyonu</td><td class="fund-profile-item">&nbsp;</td>
+				</tr><tr class="fund-profile-row">
+					<td class="fund-profile-header">Çıkış Komisyonu</td><td class="fund-profile-item">&nbsp;</td>
+				</tr><tr class="fund-profile-alternate">
+					<td class="fund-profile-header">Fonun Faiz İçeriği</td><td class="fund-profile-item">&nbsp;</td>
+				</tr><tr class="fund-profile-row">
+					<td class="fund-profile-header">Fonun Risk Değeri</td><td class="fund-profile-item">7</td>
+				</tr><tr class="fund-profile-alternate">
+					<td class="fund-profile-header">
+
+                                        <a href='https://www.kap.org.tr/tr/fon-bilgileri/genel/tly-tera-portfoy-birinci-serbest-fon' class="fund-kap-link" target="_blank" style="visibility: visible;">KAP Bilgi Adresi</a>
+                                    </td><td>&nbsp;</td>
+				</tr>
+			</table>
+<script type="text/javascript">
+//<![CDATA[
+
+var chartMainContent_FonFiyatGrafik;
+$(document).ready(function() {
+    Highcharts.setOptions({
+                        lang: {}});
+
+    chartMainContent_FonFiyatGrafik = new Highcharts.Chart({    
+    chart: {"renderTo":"MainContent_FonFiyatGrafik","defaultSeriesType":"line"},
+    
+    credits: { enabled: false },
+    plotOptions: { series: {"marker":{"enabled":false}} },
+    title: {"text":""},
+    
+    legend: {"enabled":false},
+    exporting: {"enabled":false},
+    xAxis: [{"categories":["19.08.2024","20.08.2024","21.08.2024","22.08.2024","23.08.2024","26.08.2024","27.08.2024","28.08.2024","29.08.2024","02.09.2024","03.09.2024","04.09.2024","05.09.2024","06.09.2024","09.09.2024","10.09.2024","11.09.2024","12.09.2024","13.09.2024","16.09.2024","17.09.2024","18.09.2024","19.09.2024","20.09.2024","23.09.2024","24.09.2024","25.09.2024","26.09.2024","27.09.2024","30.09.2024","01.10.2024","02.10.2024","03.10.2024","04.10.2024","07.10.2024","08.10.2024","09.10.2024","10.10.2024","11.10.2024","14.10.2024","15.10.2024","16.10.2024","17.10.2024","18.10.2024","21.10.2024","22.10.2024","23.10.2024","24.10.2024","25.10.2024","28.10.2024","30.10.2024","31.10.2024","01.11.2024","04.11.2024","05.11.2024","06.11.2024","07.11.2024","08.11.2024","11.11.2024","12.11.2024","13.11.2024","14.11.2024","15.11.2024","18.11.2024","19.11.2024","20.11.2024","21.11.2024","22.11.2024","25.11.2024","26.11.2024","27.11.2024","28.11.2024","29.11.2024","02.12.2024","03.12.2024","04.12.2024","05.12.2024","06.12.2024","09.12.2024","10.12.2024","11.12.2024","12.12.2024","13.12.2024","16.12.2024","17.12.2024","18.12.2024","19.12.2024","20.12.2024","23.12.2024","24.12.2024","25.12.2024","26.12.2024","27.12.2024","30.12.2024","31.12.2024","02.01.2025","03.01.2025","06.01.2025","07.01.2025","08.01.2025","09.01.2025","10.01.2025","13.01.2025","14.01.2025","15.01.2025","16.01.2025","17.01.2025","20.01.2025","21.01.2025","22.01.2025","23.01.2025","24.01.2025","27.01.2025","28.01.2025","29.01.2025","30.01.2025","31.01.2025","03.02.2025","04.02.2025","05.02.2025","06.02.2025","07.02.2025","10.02.2025","11.02.2025","12.02.2025","13.02.2025","14.02.2025","17.02.2025","18.02.2025","19.02.2025","20.02.2025","21.02.2025","24.02.2025","25.02.2025","26.02.2025","27.02.2025","28.02.2025","03.03.2025","04.03.2025","05.03.2025","06.03.2025","07.03.2025","10.03.2025","11.03.2025","12.03.2025","13.03.2025","14.03.2025","17.03.2025","18.03.2025","19.03.2025","20.03.2025","21.03.2025","24.03.2025","25.03.2025","26.03.2025","27.03.2025","28.03.2025","02.04.2025","03.04.2025","04.04.2025","07.04.2025","08.04.2025","09.04.2025","10.04.2025","11.04.2025","14.04.2025","15.04.2025","16.04.2025","17.04.2025","18.04.2025","21.04.2025","22.04.2025","24.04.2025","25.04.2025","28.04.2025","29.04.2025","30.04.2025","02.05.2025","05.05.2025","06.05.2025","07.05.2025","08.05.2025","09.05.2025","12.05.2025","13.05.2025","14.05.2025","15.05.2025","16.05.2025","20.05.2025","21.05.2025","22.05.2025","23.05.2025","26.05.2025","27.05.2025","28.05.2025","29.05.2025","30.05.2025","02.06.2025","03.06.2025","04.06.2025","05.06.2025","10.06.2025","11.06.2025","12.06.2025","13.06.2025","16.06.2025","17.06.2025","18.06.2025","19.06.2025","20.06.2025","23.06.2025","24.06.2025","25.06.2025","26.06.2025","27.06.2025","30.06.2025","01.07.2025","02.07.2025","03.07.2025","04.07.2025","07.07.2025","08.07.2025","09.07.2025","10.07.2025","11.07.2025","14.07.2025","16.07.2025","17.07.2025","18.07.2025","21.07.2025","22.07.2025","23.07.2025","24.07.2025","25.07.2025","28.07.2025","29.07.2025","30.07.2025","31.07.2025","01.08.2025","04.08.2025","05.08.2025","06.08.2025","07.08.2025","08.08.2025","11.08.2025","12.08.2025","13.08.2025","14.08.2025","15.08.2025","18.08.2025"],"labels":{"enabled":true,"rotation":-45,"step":25,"x":0,"y":24},"title":{"text":""}}],
+    yAxis: [{"title":{"text":"Fiyat"}}],
+    tooltip: {"formatter":function(event){ var tmp = '<b>'+ this.series.name + ((typeof(this.point.name) != 'undefined') ? '->'  +this.point.name : '' )+ ' </b><br/>'+ this.x +': '+ this.y; if(typeof(tmp) == 'function'){return tmp(this);}else{ return tmp;} }} ,
+    series: [{"name":"Fiyat","data":[19.859863,20.195869,20.795271,20.75277,21.592612,21.180116,20.204992,20.371615,20.395483,20.459375,21.022903,22.502967,24.128207,25.083895,24.611652,23.925855,23.857642,23.108111,23.2322,24.197099,24.556828,24.535482,24.068184,24.544007,24.200239,24.980122,26.20446,23.964134,22.055172,20.316414,21.757901,23.307111,22.782091,21.9357,22.77821,23.467847,24.538642,24.687683,24.455417,24.075986,23.490706,23.367446,24.254427,24.26745,24.474365,24.658627,24.476497,24.385166,25.141966,25.854364,26.006593,26.403362,26.233047,26.227472,25.928067,26.233786,25.828148,25.751095,25.269261,26.721182,25.494137,25.717186,25.878357,25.355185,25.771958,26.557366,26.680932,28.758506,28.194695,27.497109,28.22016,28.525042,28.179485,27.894645,28.754589,29.448334,29.249601,29.232279,29.6143,29.203626,29.049848,29.552648,30.136152,30.272284,32.075671,34.397658,35.677397,40.059833,44.989581,48.550563,47.103012,50.641614,54.718001,55.000173,59.782151,64.910113,68.434743,61.778803,67.17519,66.806027,63.987937,65.028121,65.025456,64.59863,65.36898,70.28723,76.6325,83.098242,84.778184,86.229335,93.918447,102.532245,101.023553,103.656662,105.621362,108.651782,109.182551,103.942284,110.487226,119.654404,128.15844,138.849412,148.820143,151.419072,143.90812,156.425507,151.601368,146.826896,157.5456,171.065206,184.664191,201.507194,214.553237,223.499446,241.896548,240.598103,251.96746,266.355103,264.106072,275.369512,267.976988,263.049457,281.06948,289.530161,291.863917,281.715269,292.861129,302.310535,312.536329,298.154937,269.527571,265.201899,239.913394,242.533351,255.042909,268.80945,293.358438,296.972746,292.053246,290.273502,298.491462,309.669342,310.317627,312.35346,324.709622,342.831337,365.158825,347.032369,319.80089,345.958093,321.817223,312.016655,314.593873,322.68565,341.036783,365.81421,361.256283,373.455229,366.944163,366.335316,374.218506,378.714652,379.634312,369.423486,379.712646,376.411031,391.853182,408.547178,402.812573,399.671177,398.234515,408.785776,419.843895,422.543706,439.157634,446.773958,454.090546,466.105921,463.924292,458.267838,483.56348,469.701784,478.851064,488.480506,492.241165,475.89166,485.05318,506.908802,527.102276,531.14516,534.780664,553.2429,570.427737,585.740694,601.986986,595.807935,574.345425,575.31319,549.784081,535.59462,549.988534,568.176155,594.88173,618.650532,623.508785,626.78663,632.615016,620.113831,631.633488,647.302057,678.397721,694.620318,697.831413,707.224709,736.89169,768.778063,780.741881,761.644685,809.688788,802.084647,816.782252,813.142053,821.208248,837.724121,822.671597,863.13604,914.64611,976.708937,1027.803998,0.0]}]
+	});
+    
+    
+
+});
+var chartMainContent_PieChartFonDagilim;
+$(document).ready(function() {
+    Highcharts.setOptions({
+                        lang: {}});
+
+    chartMainContent_PieChartFonDagilim = new Highcharts.Chart({
+    chart: {"renderTo":"MainContent_PieChartFonDagilim","defaultSeriesType":"pie"},
+    
+    credits: { enabled: false },
+    plotOptions: { pie: {} },
+    title: {"text":"Fon Varlık Dağılımı"},
+    
+    legend: {"enabled":true},
+    exporting: {"enabled":false},
+    xAxis: [],
+    yAxis: [],
+    tooltip: {"formatter":function(event){ var tmp = '%'+ this.y; if(typeof(tmp) == 'function'){return tmp(this);}else{ return tmp;} }} ,
+    series: [{"name":"Varlık Dağılımı","type":"pie","data":[["Hisse Senedi",100.0]],"showInLegend":true}]
+	});
+
+    
+
+});
+var chartMainContent_ColumnChartMatch;
+$(document).ready(function() {
+    Highcharts.setOptions({
+                        lang: {}});
+
+    chartMainContent_ColumnChartMatch = new Highcharts.Chart({
+    chart: { renderTo: 'MainContent_ColumnChartMatch', defaultSeriesType: 'column' },
+    credits: { enabled: false },
+    plotOptions: { series: {"groupPadding":0,"allowPointSelect":true} },
+    title: {"text":""},
+    
+    legend: {"enabled":true},
+    exporting: {"enabled":false},
+    xAxis: [{"categories":[""],"maxPadding":0.0,"minPadding":0.0,"title":{"text":""}}],
+    yAxis: [{"title":{"text":"Getiri Oranı %"}}],
+    tooltip: {"formatter":function(event){ var tmp =  this.series.options.id + ': %'+ this.y; if(typeof(tmp) == 'function'){return tmp(this);}else{ return tmp;} }} ,
+    series: [{"name":"TLY","id":"TERA PORTFÖY BİRİNCİ SERBEST FON","data":[0.0],"color":"#ACF29E"},{"name":"BIST100","id":"BIST100","data":[8.12],"color":"#7CB5EC"},{"name":"BIST30","id":"BIST30","data":[9.86],"color":"#A0A4EF"},{"name":"USD","id":"USD","data":[21.19],"color":"#60ACAB"},{"name":"EUR","id":"EUR","data":[28.86],"color":"#F7A35C"},{"name":"TUFE","id":"TUFE","data":[33.52],"color":"#F78484"},{"name":"MEVDUAT FAIZI","id":"MEVDUAT FAIZI","data":[46.31],"color":"#687980"},{"name":"SERBEST ŞEMSIYE FONU","id":"SERBEST ŞEMSIYE FONU","data":[53.52]},{"name":"ALTIN","id":"ALTIN","data":[60.18],"color":"#E4D354"}]
+	});
+
+    
+
+});//]]>
+</script>
+</body></html>

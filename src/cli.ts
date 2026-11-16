@@ -5,6 +5,8 @@
  *   node --experimental-strip-types src/cli.ts validate-archive [--archive archive]
  *   node --experimental-strip-types src/cli.ts snapshot [--archive archive] [--day YYYY-MM-DD] [--limit N] [--no-witness]
  *   node --experimental-strip-types src/cli.ts validate-events [--events events/2026-fund-crisis.csv]
+ *   node --experimental-strip-types src/cli.ts archive-coverage --fund-list <fon-getirileri.html> [--from 2025-01] [--to 2026-09] [--out docs/history-coverage.csv]
+ *   node --experimental-strip-types src/cli.ts backfill --fund-list <fon-getirileri.html> [--archive <dir>] [--from 2025-01] [--to 2026-09] [--codes A,B]
  *
  * `check` validates the source registry; `validate-archive` validates every
  * record line; `snapshot` captures the day's TEFAS figures;
@@ -12,10 +14,13 @@
  * Each exits 1 naming the problem. `--limit` and `--no-witness` are for
  * local trials only.
  */
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { validateArchive } from './archive.ts';
+import { runBackfill } from './backfill.ts';
+import { archiveCoverage, studyFunds } from './coverage.ts';
+import { toCsv } from './csv.ts';
 import { validateEvents } from './events.ts';
 import { createFetcher, realClock } from './fetch.ts';
 import { validateRegistry } from './registry.ts';
@@ -73,6 +78,11 @@ export async function main(argv: string[]): Promise<number> {
       limit: { type: 'string' },
       events: { type: 'string', default: resolve(ROOT, 'events/2026-fund-crisis.csv') },
       'no-witness': { type: 'boolean', default: false },
+      'fund-list': { type: 'string' },
+      from: { type: 'string', default: '2025-01' },
+      to: { type: 'string', default: '2026-09' },
+      out: { type: 'string', default: resolve(ROOT, 'docs/history-coverage.csv') },
+      codes: { type: 'string' },
     },
   });
   switch (positionals[0]) {
@@ -96,8 +106,37 @@ export async function main(argv: string[]): Promise<number> {
       }
       return snapshot(values.registry as string, values.archive as string, values.day as string, limit, values['no-witness'] as boolean);
     }
+    case 'archive-coverage': {
+      if (!values['fund-list']) {
+        console.error('--fund-list <saved /tr/fon-getirileri page> is required');
+        return 2;
+      }
+      const funds = studyFunds(readFileSync(values['fund-list'] as string, 'utf8'), readFileSync(values.events as string, 'utf8'));
+      const fetcher = createFetcher({ hostIntervalMs: { 'web.archive.org': 1500 } });
+      const rows = await archiveCoverage(fetcher, funds, values.from as string, values.to as string);
+      const out = values.out as string;
+      mkdirSync(dirname(out), { recursive: true });
+      writeFileSync(out, toCsv(['fund_code', 'group', 'stratum', 'month', 'old_captures', 'old_usable', 'new_captures', 'new_usable', 'first_usable'], rows as unknown as Record<string, string>[]));
+      console.log(`${out}: ${rows.length} rows for ${funds.length} funds`);
+      return 0;
+    }
+    case 'backfill': {
+      const { sources, errors } = loadRegistry(values.registry as string);
+      for (const e of errors) console.error(e);
+      if (errors.length) return 1;
+      let codes: string[];
+      if (values.codes) codes = (values.codes as string).split(',').filter(Boolean);
+      else if (values['fund-list']) codes = studyFunds(readFileSync(values['fund-list'] as string, 'utf8'), readFileSync(values.events as string, 'utf8')).map((f) => f.code);
+      else {
+        console.error('--codes or --fund-list is required');
+        return 2;
+      }
+      const fetcher = createFetcher({ hostIntervalMs: { 'web.archive.org': 2000 } });
+      const { exitCode } = await runBackfill({ root: values.archive as string, codes, from: (values.from as string).replace('-', ''), to: (values.to as string).replace('-', ''), sources, fetcher, clock: realClock });
+      return exitCode;
+    }
     default:
-      console.error('usage: cli.ts check | validate-archive | snapshot [--archive <dir>] [--day YYYY-MM-DD] [--limit N]');
+      console.error('usage: cli.ts check | validate-archive | validate-events | snapshot | archive-coverage | backfill (see the header of src/cli.ts)');
       return 2;
   }
 }
