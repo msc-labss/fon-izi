@@ -9,6 +9,8 @@
  *   node --experimental-strip-types src/cli.ts archive-coverage --fund-list <fon-getirileri.html> [--from 2025-01] [--to 2026-09] [--out docs/history-coverage.csv]
  *   node --experimental-strip-types src/cli.ts backfill --fund-list <fon-getirileri.html> [--archive <dir>] [--from 2025-01] [--to 2026-09] [--codes A,B] [--cache <dir>]
  *     [--retry-failures <earlier run summary> --group <new group>]   re-extract only the captures that failed
+ *   node --experimental-strip-types src/cli.ts import-dump-holdings --dump <clone of the dump> --archive <dir>
+ *   node --experimental-strip-types src/cli.ts build-tables --archive <dir> --tables <dir>
  *   node --experimental-strip-types src/cli.ts record-coverage [--archive <dir>] [--events <csv> | --codes A,B] [--from 2026-01] [--to 2026-09] --out <csv>
  *
  * `check` validates the source registry; `validate-archive` validates every
@@ -17,11 +19,14 @@
  * Each exits 1 naming the problem. `--limit` and `--no-witness` are for
  * local trials only.
  */
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { validateArchive } from './archive.ts';
 import { runBackfill } from './backfill.ts';
+import { fileVersions, holdingsRecords, HOLDINGS_GROUP, readAt } from './dump-import.ts';
+import { archiveRecords, HOLDINGS_COLUMNS, holdingsTable } from './tables.ts';
+import { dayPath, writeDay } from './archive.ts';
 import { recordCoverage } from './record-coverage.ts';
 import { parseCsvRecords } from './csv.ts';
 import { archiveCoverage, studyFunds } from './coverage.ts';
@@ -92,6 +97,8 @@ export async function main(argv: string[]): Promise<number> {
       cache: { type: 'string' },
       group: { type: 'string' },
       'retry-failures': { type: 'string' },
+      dump: { type: 'string' },
+      tables: { type: 'string' },
     },
   });
   switch (positionals[0]) {
@@ -170,8 +177,48 @@ export async function main(argv: string[]): Promise<number> {
       console.log(`${out}: ${rows.length} rows for ${codes.length} funds`);
       return 0;
     }
+    case 'import-dump-holdings': {
+      const repo = values.dump as string | undefined;
+      if (!repo) {
+        console.error('--dump <clone of the dump> is required');
+        return 2;
+      }
+      const files = readdirSync(join(repo, 'arsiv')).filter((f) => /^fon_icerik_\d{4}-\d{2}\.csv\.gz$/.test(f)).sort();
+      let written = 0;
+      let skipped = 0;
+      for (const f of files) {
+        const path = `arsiv/${f}`;
+        const byDay = holdingsRecords(path, fileVersions(repo, path), readAt(repo, path));
+        for (const [day, lines] of [...byDay].sort()) {
+          if (existsSync(dayPath(values.archive as string, HOLDINGS_GROUP, day))) {
+            // A second file can reach the same capture day: keep it in its own day file.
+            const alt = `${HOLDINGS_GROUP}-${f.slice(11, 18)}`;
+            if (existsSync(dayPath(values.archive as string, alt, day))) {
+              skipped++;
+              continue;
+            }
+            writeDay(values.archive as string, alt, day, [...lines].sort());
+          } else writeDay(values.archive as string, HOLDINGS_GROUP, day, [...lines].sort());
+          written += lines.length;
+        }
+      }
+      console.log(`import-dump-holdings: ${written} holdings reports written, ${skipped} day files skipped (already present)`);
+      return 0;
+    }
+    case 'build-tables': {
+      const out = values.tables as string | undefined;
+      if (!out) {
+        console.error('--tables <dir> is required');
+        return 2;
+      }
+      mkdirSync(out, { recursive: true });
+      const rows = holdingsTable(archiveRecords(values.archive as string));
+      writeFileSync(join(out, 'holdings.csv'), toCsv(HOLDINGS_COLUMNS, rows));
+      console.log(`build-tables: holdings.csv ${rows.length} rows`);
+      return 0;
+    }
     default:
-      console.error('usage: cli.ts check | validate-archive | validate-events | snapshot | archive-coverage | backfill | record-coverage (see the header of src/cli.ts)');
+      console.error('usage: cli.ts check | validate-archive | validate-events | validate-timeline | snapshot | archive-coverage | backfill | record-coverage | import-dump-holdings | build-tables (see the header of src/cli.ts)');
       return 2;
   }
 }
