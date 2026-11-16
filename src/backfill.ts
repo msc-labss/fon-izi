@@ -58,6 +58,10 @@ export interface BackfillOptions {
   cacheDir?: string;
   /** Back-off sleep (tests pass a no-op). */
   sleep?: (ms: number) => Promise<void>;
+  /** Archive group to write into; a retry pass uses its own group. */
+  group?: string;
+  /** Only these captures (`CODE|timestamp`), e.g. the failures of an earlier run. */
+  only?: ReadonlySet<string>;
 }
 
 class RetryableHttp extends Error {}
@@ -97,7 +101,7 @@ export async function runBackfill(opts: BackfillOptions): Promise<{ exitCode: nu
   const failures: { code: string; capture: string; reason: string }[] = [];
   let usable = 0;
   for (const [i, code] of codes.entries()) {
-    const caps = (await list(code)).filter(isUsable);
+    const caps = (await list(code)).filter(isUsable).filter((c) => !opts.only || opts.only.has(`${code}|${c.timestamp}`));
     usable += caps.length;
     for (const c of caps) {
       const url = rawCaptureUrl(c);
@@ -141,27 +145,30 @@ export async function runBackfill(opts: BackfillOptions): Promise<{ exitCode: nu
     if ((i + 1) % 10 === 0) log(`backfill: ${i + 1}/${codes.length} funds, ${usable} usable captures, ${failures.length} failed`);
   }
 
+  const group = opts.group ?? BACKFILL_GROUP;
   const written: string[] = [];
   const skippedDays: string[] = [];
   for (const day of [...byDay.keys()].sort()) {
-    if (existsSync(dayPath(root, BACKFILL_GROUP, day))) {
+    if (existsSync(dayPath(root, group, day))) {
       skippedDays.push(day);
       continue;
     }
-    written.push(writeDay(root, BACKFILL_GROUP, day, [...byDay.get(day)!].sort()));
+    written.push(writeDay(root, group, day, [...byDay.get(day)!].sort()));
   }
   const runAt = new Date(clock.now()).toISOString();
   const summary = {
     runAt,
     toolVersion: TOOL_VERSION,
+    group,
     window: { from: opts.from, to: opts.to },
+    ...(opts.only ? { retryOf: opts.only.size } : {}),
     funds: codes.length,
     usableCaptures: usable,
     failures,
     daysWritten: written.length,
     daysSkippedExisting: skippedDays,
   };
-  writeNew(dayPath(root, BACKFILL_GROUP, runAt.slice(0, 10), `.backfill-run-${runAt.replace(/[:.]/g, '')}.json`), `${JSON.stringify(summary, null, 2)}\n`);
+  writeNew(dayPath(root, group, runAt.slice(0, 10), `.backfill-run-${runAt.replace(/[:.]/g, '')}.json`), `${JSON.stringify(summary, null, 2)}\n`);
   log(`backfill: ${usable} usable captures, ${written.length} day files written, ${failures.length} failed, ${skippedDays.length} days skipped`);
   return { exitCode: 0, summary };
 }

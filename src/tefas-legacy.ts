@@ -25,10 +25,10 @@ const decode = (s: string) =>
     .replace(/&amp;/g, '&')
     .trim();
 
-/** tr-TR number as shown: "11.121" → 11121, "%-12,5" → -12.5, "" → null. */
+/** tr-TR number as shown: "11.121" → 11121, "%-12,5" → -12.5, "" or "-" → null. */
 export function trNumber(shown: string): number | null {
   const s = decode(shown).replace(/^%/, '').replace(/\s/g, '');
-  if (s === '') return null;
+  if (s === '' || s === '-') return null;
   const n = Number(s.replace(/\./g, '').replace(',', '.'));
   if (!Number.isFinite(n)) throw new ExtractError(`not a number: ${JSON.stringify(shown)}`);
   return n;
@@ -120,8 +120,8 @@ export function extractLegacyFundPage(html: string, expectedCode: string): Legac
   out.isin = profile.get('ISIN Kodu') || null;
   out.tradingStatus = profile.get('Platform İşlem Durumu') || null;
   const risk = profile.get('Fonun Risk Değeri');
-  out.riskValue = risk ? trNumber(risk) : null;
-  if (!risk) missing.riskValue = risk === undefined ? 'not-shown' : 'empty';
+  out.riskValue = risk === undefined ? null : trNumber(risk);
+  if (out.riskValue === null) missing.riskValue = risk === undefined ? 'not-shown' : 'empty';
 
   const chart = html.indexOf('chartMainContent_FonFiyatGrafik = new');
   if (chart !== -1) {

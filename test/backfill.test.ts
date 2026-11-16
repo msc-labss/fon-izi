@@ -115,3 +115,17 @@ test('rate limits back off and retry instead of failing the capture', async () =
   assert.deepEqual(summary.failures, []);
   assert.equal(summary.daysWritten, 1);
 });
+
+test('a retry pass takes only the listed captures and writes into its own group', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'fon-izi-bf-'));
+  const { clock, fetcher } = setup({ [raw('20250818045739')]: { status: 200, body: page }, [raw('20250820015135')]: { status: 200, body: page } });
+  const { summary } = await runBackfill({
+    root, codes: ['TLY'], from: '202501', to: '202609', sources, fetcher, clock, log: () => {},
+    listCaptures: async () => [cap('20250818045739'), cap('20250820015135')],
+    group: 'tefas-backfill-2', only: new Set(['TLY|20250820015135']),
+  });
+  assert.equal(summary.usableCaptures, 1);
+  assert.equal(summary.group, 'tefas-backfill-2');
+  assert.ok(!fetcher.log.some((e) => e.url === raw('20250818045739')));
+  assert.equal(readLines(dayPath(root, 'tefas-backfill-2', '2025-08-20')).filter(Boolean).length, 2);
+});

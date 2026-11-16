@@ -7,6 +7,7 @@
  *   node --experimental-strip-types src/cli.ts validate-events [--events events/2026-fund-crisis.csv]
  *   node --experimental-strip-types src/cli.ts archive-coverage --fund-list <fon-getirileri.html> [--from 2025-01] [--to 2026-09] [--out docs/history-coverage.csv]
  *   node --experimental-strip-types src/cli.ts backfill --fund-list <fon-getirileri.html> [--archive <dir>] [--from 2025-01] [--to 2026-09] [--codes A,B] [--cache <dir>]
+ *     [--retry-failures <earlier run summary> --group <new group>]   re-extract only the captures that failed
  *   node --experimental-strip-types src/cli.ts record-coverage [--archive <dir>] [--events <csv> | --codes A,B] [--from 2026-01] [--to 2026-09] --out <csv>
  *
  * `check` validates the source registry; `validate-archive` validates every
@@ -87,6 +88,8 @@ export async function main(argv: string[]): Promise<number> {
       out: { type: 'string', default: resolve(ROOT, 'docs/history-coverage.csv') },
       codes: { type: 'string' },
       cache: { type: 'string' },
+      group: { type: 'string' },
+      'retry-failures': { type: 'string' },
     },
   });
   switch (positionals[0]) {
@@ -129,14 +132,23 @@ export async function main(argv: string[]): Promise<number> {
       for (const e of errors) console.error(e);
       if (errors.length) return 1;
       let codes: string[];
-      if (values.codes) codes = (values.codes as string).split(',').filter(Boolean);
+      let only: Set<string> | undefined;
+      if (values['retry-failures']) {
+        const failures = JSON.parse(readFileSync(values['retry-failures'] as string, 'utf8')).failures as { code: string; capture: string }[];
+        only = new Set(failures.map((f) => `${f.code}|${f.capture}`));
+        codes = [...new Set(failures.map((f) => f.code))].sort();
+        if (!values.group) {
+          console.error('--retry-failures needs --group (a retry pass writes into its own group)');
+          return 2;
+        }
+      } else if (values.codes) codes = (values.codes as string).split(',').filter(Boolean);
       else if (values['fund-list']) codes = studyFunds(readFileSync(values['fund-list'] as string, 'utf8'), readFileSync(values.events as string, 'utf8')).map((f) => f.code);
       else {
         console.error('--codes or --fund-list is required');
         return 2;
       }
       const fetcher = createFetcher({ hostIntervalMs: { 'web.archive.org': 2000 } });
-      const { exitCode } = await runBackfill({ root: values.archive as string, codes, from: (values.from as string).replace('-', ''), to: (values.to as string).replace('-', ''), sources, fetcher, clock: realClock, cacheDir: values.cache as string | undefined });
+      const { exitCode } = await runBackfill({ root: values.archive as string, codes, from: (values.from as string).replace('-', ''), to: (values.to as string).replace('-', ''), sources, fetcher, clock: realClock, cacheDir: values.cache as string | undefined, group: values.group as string | undefined, only });
       return exitCode;
     }
     case 'record-coverage': {

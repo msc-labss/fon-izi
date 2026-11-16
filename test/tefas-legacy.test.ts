@@ -44,10 +44,18 @@ test('tr-TR numbers and dates', () => {
   assert.equal(trNumber('1.234.567,89'), 1234567.89);
   assert.equal(trNumber(' '), null);
   assert.equal(trNumber('&nbsp;'), null);
+  assert.equal(trNumber('-'), null);
   assert.throws(() => trNumber('abc'), ExtractError);
   assert.equal(trDate('19.08.2024'), '2024-08-19');
 });
 
 test('the full capture extracts the same as the trimmed fixture', { skip: !existsSync(FULL) && 'fixtures-local not present' }, () => {
   assert.deepEqual(extractLegacyFundPage(readFileSync(FULL, 'utf8'), 'TLY'), extractLegacyFundPage(fixture, 'TLY'));
+});
+
+test('a risk value shown as "-" is empty, not an error', () => {
+  const page = fixture.replace(/(Fonun Risk Değeri<\/td>\s*<td class="fund-profile-item">)7</, '$1-<');
+  const p = extractLegacyFundPage(page, 'TLY');
+  assert.equal(p.riskValue, null);
+  assert.equal(p.missing.riskValue, 'empty');
 });
