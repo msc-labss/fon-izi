@@ -20,6 +20,7 @@ import { createFetcher, realClock } from './fetch.ts';
 import { validateRegistry } from './registry.ts';
 import type { Source } from './registry.ts';
 import { runSnapshot } from './snapshot.ts';
+import { createWitness, parseWitnessConfig } from './witness.ts';
 
 const ROOT = resolve(dirname(new URL(import.meta.url).pathname), '..');
 
@@ -52,7 +53,10 @@ async function snapshot(registryPath: string, archiveDir: string, day: string, l
   const { sources, errors } = loadRegistry(registryPath);
   for (const e of errors) console.error(e);
   if (errors.length) return 1;
-  const { exitCode } = await runSnapshot({ root: archiveDir, day, sources, fetcher: createFetcher(), clock: realClock, limit });
+  const fetcher = createFetcher({ hostIntervalMs: { 'web.archive.org': 5000 } });
+  const config = parseWitnessConfig(readFileSync(resolve(ROOT, 'witness-list.json'), 'utf8'));
+  const { witness, rest } = createWitness(config, fetcher);
+  const { exitCode } = await runSnapshot({ root: archiveDir, day, sources, fetcher, clock: realClock, limit, witness, witnessRest: rest });
   return exitCode;
 }
 

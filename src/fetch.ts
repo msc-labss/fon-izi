@@ -39,7 +39,7 @@ export interface RequestLogEntry {
 }
 
 export type FetchResult =
-  | { kind: 'response'; url: string; status: number; body: string; sha256: string; capturedAt: string; location: string | null }
+  | { kind: 'response'; url: string; status: number; body: string; sha256: string; capturedAt: string; location: string | null; contentLocation: string | null }
   | { kind: 'network-error'; url: string; error: string; capturedAt: string }
   | { kind: 'robots-disallowed'; url: string; capturedAt: string };
 
@@ -48,6 +48,8 @@ export interface FetcherOptions {
   clock?: Clock;
   userAgent?: string;
   minIntervalMs?: number;
+  /** Longer spacing for some hosts, e.g. `{ 'web.archive.org': 5000 }`. */
+  hostIntervalMs?: Record<string, number>;
   retryDelayMs?: number;
   timeoutMs?: number;
   logError?: (message: string) => void;
@@ -60,6 +62,7 @@ export function createFetcher({
   clock = realClock,
   userAgent = USER_AGENT,
   minIntervalMs = 1000,
+  hostIntervalMs = {},
   retryDelayMs = 5000,
   timeoutMs = 30_000,
   logError = (m) => console.error(m),
@@ -76,36 +79,36 @@ export function createFetcher({
     const mine = previous.then(async () => {
       const wait = (nextAt.get(host) ?? 0) - clock.now();
       if (wait > 0) await clock.sleep(wait);
-      nextAt.set(host, clock.now() + minIntervalMs);
+      nextAt.set(host, clock.now() + Math.max(minIntervalMs, hostIntervalMs[host] ?? 0));
     });
     hostQueue.set(host, mine);
     return mine;
   }
 
-  async function once(url: string) {
+  async function once(url: string, requestTimeoutMs: number) {
     const host = new URL(url).host;
     await turn(host);
     log.push({ url, host, at: clock.now() });
     const res = await fetchImpl(url, {
       redirect: 'manual',
-      signal: AbortSignal.timeout(timeoutMs),
+      signal: AbortSignal.timeout(requestTimeoutMs),
       headers: { 'User-Agent': userAgent, 'Accept-Language': 'tr-TR' },
     });
     const bytes = new Uint8Array(await res.arrayBuffer());
-    return { status: res.status, bytes, location: res.headers.get('location') };
+    return { status: res.status, bytes, location: res.headers.get('location'), contentLocation: res.headers.get('content-location') };
   }
 
   /** One request with one retry; never throws. */
-  async function request(url: string): Promise<FetchResult> {
+  async function request(url: string, requestTimeoutMs = timeoutMs): Promise<FetchResult> {
     for (let attempt = 1; ; attempt++) {
       try {
-        const r = await once(url);
+        const r = await once(url, requestTimeoutMs);
         if ((r.status >= 500 || r.status === 429) && attempt === 1) {
           logError(`${url}: HTTP ${r.status}, retrying`);
           await clock.sleep(retryDelayMs);
           continue;
         }
-        return { kind: 'response', url, status: r.status, body: new TextDecoder().decode(r.bytes), sha256: sha256(r.bytes), capturedAt: iso(), location: r.location };
+        return { kind: 'response', url, status: r.status, body: new TextDecoder().decode(r.bytes), sha256: sha256(r.bytes), capturedAt: iso(), location: r.location, contentLocation: r.contentLocation };
       } catch (e) {
         const cause = (e as { cause?: { code?: string } })?.cause?.code;
         const message = `${(e as Error)?.message ?? e}${cause ? ` (${cause})` : ''}`;
@@ -127,12 +130,12 @@ export function createFetcher({
     return rules;
   }
 
-  /** Fetches `url` if robots.txt allows it. */
-  async function get(url: string): Promise<FetchResult> {
+  /** Fetches `url` if robots.txt allows it. `timeoutMs` overrides the default for this request. */
+  async function get(url: string, { timeoutMs: requestTimeoutMs }: { timeoutMs?: number } = {}): Promise<FetchResult> {
     const u = new URL(url);
     const rules = await robotsFor(u.origin);
     if (!isAllowed(u.pathname + u.search, rules)) return { kind: 'robots-disallowed', url, capturedAt: iso() };
-    return request(url);
+    return request(url, requestTimeoutMs ?? timeoutMs);
   }
 
   return { get, log };

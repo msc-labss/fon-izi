@@ -37,6 +37,8 @@ export interface SnapshotOptions {
   clock: Clock;
   /** Witness for a captured URL; defaults to "off". */
   witness?: (url: string) => Promise<Witness>;
+  /** Witnesses listed URLs the run did not capture; results go to the run summary. */
+  witnessRest?: () => Promise<Record<string, Witness>>;
   /** Capture only the first N funds of the list (local trials only). */
   limit?: number;
   log?: (message: string) => void;
@@ -179,6 +181,10 @@ export async function runSnapshot(opts: SnapshotOptions): Promise<SnapshotResult
   for (const code of absent) lines.push(makeRecord({ ...base(listSource, listRes, listWitness), kind: 'absence', data: { code, lastListedOn: previous!.day } }).line);
   summary.absences = absent;
 
+  if (opts.witnessRest) {
+    const all = await opts.witnessRest();
+    summary.witness = { requested: Object.keys(all).length, captured: Object.values(all).filter((w) => w.url).length, results: all };
+  }
   writeDay(root, GROUP, day, lines);
   for (const r of raws) writeRaw(root, r.hash, r.body);
   summary.finishedAt = new Date(clock.now()).toISOString();
