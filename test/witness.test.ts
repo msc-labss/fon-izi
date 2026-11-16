@@ -84,3 +84,19 @@ test('the committed witness list is on (founder, 16 Nov 2026) and covers the fun
   assert.ok(config.urls.includes(LIST_URL));
   for (const url of new Set(records.map((r) => r.source_url))) assert.ok(config.urls.includes(url), url);
 });
+
+test('witnessing stops at its time budget and says so', async () => {
+  let t = 0;
+  const fetcher = { get: async () => ({ kind: 'response', url: 'x', status: 302, body: '', sha256: '', capturedAt: '', location: '/web/20261117030001/https://a.example/', contentLocation: null }), log: [] } as unknown as Parameters<typeof createWitness>[1];
+  const { witness } = createWitness({ enabled: true, urls: ['https://a.example/', 'https://b.example/'] }, fetcher, { budgetMs: 1000, now: () => t });
+  assert.equal((await witness('https://a.example/')).reason, null);
+  t = 2000;
+  assert.deepEqual(await witness('https://b.example/'), { url: null, reason: 'not-attempted: witness time budget spent' });
+});
+
+test('captures come first, witnesses after: no Save Page Now request before the last fund page', async () => {
+  const { fetcher } = await run(true, [DETAIL_URL('AAA'), DETAIL_URL('BBB')], (target) => ({ status: 302, headers: { location: `/web/20261117030001/${target}` } }));
+  const firstSave = fetcher.log.findIndex((e) => e.host === 'web.archive.org');
+  const lastFund = fetcher.log.map((e) => e.url).lastIndexOf(DETAIL_URL('BBB'));
+  assert.ok(firstSave > lastFund, `first save at ${firstSave}, last fund page at ${lastFund}`);
+});

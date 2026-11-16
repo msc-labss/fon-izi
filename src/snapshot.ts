@@ -4,9 +4,11 @@
  * source policy").
  *
  * 1. Refuse an existing day file before any request.
- * 2. Fund list: one record per entry (`list-entry`).
- * 3. One detail page per fund: one record per fund (`fund`).
- * 4. A code seen on the latest earlier day and missing today: `absence`.
+ * 2. Capture the fund list and every fund's detail page, back to back, so
+ *    the day's capture times stay close together.
+ * 3. Then witness the listed captured URLs (Save Page Now is slow).
+ * 4. Records: one per list entry (`list-entry`), one per fund (`fund`), and
+ *    `absence` for a code seen on the latest earlier day and missing today.
  * 5. Write the day file and its run summary, or nothing at all.
  *
  * Exit 1 and write nothing when the list cannot be read or is empty, or
@@ -128,14 +130,12 @@ export async function runSnapshot(opts: SnapshotOptions): Promise<SnapshotResult
   const keepRaw = (source: Source, res: Extract<FetchResult, { kind: 'response' }>) => {
     if (source.rawPolicy === 'publish') raws.push({ hash: res.sha256, body: res.body });
   };
-  const listWitness = await witness(LIST_URL);
   keepRaw(listSource, listRes);
-  for (const e of entries) lines.push(makeRecord({ ...base(listSource, listRes, listWitness), kind: 'list-entry', data: { ...e } }).line);
 
   const targets = typeof limit === 'number' ? entries.slice(0, limit) : entries;
   const failures: Failure[] = [];
   const disallowed: string[] = [];
-  const fundLines: string[] = [];
+  const captured: { source: Source; res: Extract<FetchResult, { kind: 'response' }>; data: Record<string, unknown> }[] = [];
   for (const [i, entry] of targets.entries()) {
     const url = DETAIL_URL(entry.code);
     let source: Source;
@@ -160,7 +160,7 @@ export async function runSnapshot(opts: SnapshotOptions): Promise<SnapshotResult
     try {
       const data = extractFundDetail(res.body, entry.code);
       keepRaw(source, res);
-      fundLines.push(makeRecord({ ...base(source, res, await witness(url)), kind: 'fund', data: { ...data } }).line);
+      captured.push({ source, res, data: { ...data } });
     } catch (e) {
       if (!(e instanceof ExtractError)) throw e;
       failures.push({ code: entry.code, url, reason: `extract: ${e.message}` });
@@ -168,13 +168,15 @@ export async function runSnapshot(opts: SnapshotOptions): Promise<SnapshotResult
     if ((i + 1) % 100 === 0) log(`snapshot ${day}: ${i + 1}/${targets.length} funds, ${failures.length} failed`);
   }
 
-  summary.funds = { attempted: targets.length, captured: fundLines.length, failed: failures.length, robotsDisallowed: disallowed.length };
+  summary.funds = { attempted: targets.length, captured: captured.length, failed: failures.length, robotsDisallowed: disallowed.length };
   summary.failures = failures;
   summary.robotsDisallowed = disallowed;
   const share = targets.length ? failures.length / targets.length : 0;
   if (share > MAX_FAILURE_SHARE) return fail(`${failures.length} of ${targets.length} fund pages failed (${(share * 100).toFixed(1)}% > ${MAX_FAILURE_SHARE * 100}%)`);
 
-  lines.push(...fundLines);
+  const listWitness = await witness(LIST_URL);
+  for (const e of entries) lines.push(makeRecord({ ...base(listSource, listRes, listWitness), kind: 'list-entry', data: { ...e } }).line);
+  for (const c of captured) lines.push(makeRecord({ ...base(c.source, c.res, await witness(c.res.url)), kind: 'fund', data: c.data }).line);
   const previous = previousCodes(root, day);
   const today = new Set(entries.map((e) => e.code));
   const absent = previous ? [...previous.codes].filter((c) => !today.has(c)).sort() : [];

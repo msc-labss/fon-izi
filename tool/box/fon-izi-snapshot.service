@@ -16,6 +16,6 @@ Type=oneshot
 WorkingDirectory=%h/.fon-izi/run
 Environment=NODE=%h/.nvm/versions/node/v22.23.4/bin/node
 ExecStart=/usr/bin/env bash %h/.fon-izi/run/tool/box/daily.sh
-# About 36 minutes for TEFAS plus Save Page Now for the witness list.
-TimeoutStartSec=3h
+# About 36 minutes for TEFAS, then at most 90 minutes of Save Page Now.
+TimeoutStartSec=4h
 Nice=10
